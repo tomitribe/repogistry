@@ -525,6 +525,10 @@ angular.module('tribe-endpoints-details', [
     controller: [
       '$scope', 'tribeEndpointsService', 'tribeFilterService', '$timeout', '$filter', '$log', '$location', 'systemMessagesService', 'tribeLinkHeaderService',
       function ($scope, srv, tribeFilterService, $timeout, $filter, $log, $location, systemMessagesService, tribeLinkHeaderService) {
+        $scope.isSaveable = () => {
+          return !$scope['isOnEdit'] && !!$scope['endpoint'] && !!$scope['endpoint']['httpMethod'] && !!$scope['endpoint']['path'] && !!$scope['endpoint']['path'].trim();
+        };
+
         $scope['onEditCount'] = {};
         $scope['onEditModeOn'] = (uniqueId) => $timeout(() => $scope.$apply(() => {
             $scope['onEditCount'][uniqueId] = {};
@@ -729,10 +733,5 @@ angular.module('tribe-endpoints-details', [
             restrict: 'A',
             link: stickyNavLink
         };
-    }])
-
-  .run(function () {
-    // placeholder
-  });
-
+    }]);
 }
