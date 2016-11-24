@@ -1,56 +1,96 @@
-h2 Try {{request.method}} {{endpoint.path}}
-v-accordion(multiple="").vAccordion--default
-  div.try-me-line
-    div(data-tribe-singleselect, data-editable="true", data-selected-option="request.url", data-placeholder="URL to request")
-    .try-me-button
-      i.fa.fa-save
-      span(ng-click="tryIt();") Try It!
-  v-pane
-    v-pane-header
-      div.try-me-line
-        div Headers
-        div(ng-click="addHeader();$accordion.expand(0);$event.stopPropagation();").try-me-button
-          i.fa.fa-add
-          span Add
-        div(ng-click="addOAuth2();$accordion.expand(0);$event.stopPropagation();").try-me-button
-          i.fa.fa-add
-          span OAuth2
-        div(ng-click="addSignature();$accordion.expand(0);$event.stopPropagation();").try-me-button
-          i.fa.fa-add
-          span HTTP Signature
-        div(ng-click="addBasic();$accordion.expand(0);$event.stopPropagation();").try-me-button
-          i.fa.fa-add
-          span Basic
-        div(ng-click="addDate();$accordion.expand(0);$event.stopPropagation();").try-me-button
-          i.fa.fa-add
-          span Date
-        div(ng-click="addDigest();$accordion.expand(0);$event.stopPropagation();").try-me-button
-          i.fa.fa-add
-          span Digest
-    v-pane-content
-      div(ng-repeat="h in headers track by $index")
+div(data-app)
+  div
+    .header-try-me
+      .breadcrumb
+        a(href=".")
+          i.fa.fa-home
+        i.fa.fa-chevron-right
+        a(x-ng-href="application/{{endpointUrlInfo.applicationName}}?version={{endpointUrlInfo.version || ''}}") {{endpointUrlInfo.applicationName}} {{endpointUrlInfo.version || ''}}
+        i.fa.fa-chevron-right
+        a(x-ng-href="endpoint/{{endpointUrlInfo.applicationName}}/{{endpointUrlInfo.verb}}/{{endpointUrlInfo.endpointPath}}?version={{endpointUrlInfo.version || ''}}") {{endpointUrlInfo.verb}} {{endpointUrlInfo.endpointPath}} {{endpointUrlInfo.version || ''}}
+      .buttons
+        .save(x-ng-click="tryIt();")
+          i.fa.fa-floppy-o
+          span Try It!
+    h2 {{request.method}} {{endpoint.path}}
+    article.content.try-me
+      h3 Request
+      v-accordion(multiple="").vAccordion--default
         div.try-me-line
-          ui-select(ng-model="h.name", placeholder="Header name", on-select="onHeaderChange($item, h);", tagging, tagging-label="false", tagging-tokens="ENTER|,")
-            ui-select-match(placeholder="Header name") {{$select.selected}}
-            ui-select-choices(repeat="p in headerOptions | filter: $select.search track by $index")
-              div {{p}}
-          ui-select(ng-model="h.value", placeholder="Header value", tagging, tagging-label="false", tagging-tokens="ENTER|,")
-            ui-select-match(placeholder="Header value") {{$select.selected}}
-            ui-select-choices(repeat="p in (h.$$proposals || []) | filter: $select.search track by $index")
-              div {{p}}
-          div
-            div(ng-click="headers.splice($index, 1)")
+          div Endpoint:
+          div(data-tribe-singleselect, data-editable="true", data-selected-option="request.url", data-placeholder="URL to request")
+        v-pane
+          v-pane-header
+            div.try-me-line
+              div Headers
+              div(ng-click="addHeader();$accordion.expand(0);$event.stopPropagation();").try-me-button
+                i.fa.fa-add
+                span Add
+              div(ng-click="addOAuth2();$accordion.expand(0);$event.stopPropagation();").try-me-button
+                i.fa.fa-add
+                span OAuth2
+              div(ng-click="addSignature();$accordion.expand(0);$event.stopPropagation();").try-me-button
+                i.fa.fa-add
+                span HTTP Signature
+              div(ng-click="addBasic();$accordion.expand(0);$event.stopPropagation();").try-me-button
+                i.fa.fa-add
+                span Basic
+              div(ng-click="addDate();$accordion.expand(0);$event.stopPropagation();").try-me-button
+                i.fa.fa-add
+                span Date
+              div(ng-click="addDigest();$accordion.expand(0);$event.stopPropagation();").try-me-button
+                i.fa.fa-add
+                span Digest
+          v-pane-content
+            div(ng-repeat="h in headers track by $index")
+              div.try-me-line
+                ui-select(ng-model="h.name", placeholder="Header name", on-select="onHeaderChange($item, h);", tagging, tagging-label="false", tagging-tokens="ENTER|,")
+                  ui-select-match(placeholder="Header name") {{$select.selected}}
+                  ui-select-choices(repeat="p in headerOptions | filter: $select.search track by $index")
+                    div {{p}}
+                ui-select(ng-model="h.value", placeholder="Header value", tagging, tagging-label="false", tagging-tokens="ENTER|,")
+                  ui-select-match(placeholder="Header value") {{$select.selected}}
+                  ui-select-choices(repeat="p in (h.$$proposals || []) | filter: $select.search track by $index")
+                    div {{p}}
+                div
+                  div(ng-click="headers.splice($index, 1)")
+                    i.fa.fa-trash-o
+                    span Remove
+        v-pane(ng-if="!!request.digest.algorithm")
+          v-pane-header Payload Digesting
+          v-pane-content
+            label Algorithm
+            div {{request.digest.algorithm}}
+            div(ng-click="request.digest.algorithm = undefined;")
               i.fa.fa-trash-o
               span Remove
-  v-pane(ng-if="!!request.digest.algorithm")
-    v-pane-header Payload Digesting
-    v-pane-content
-      label Algorithm
-      div {{request.digest.algorithm}}
-      div(ng-click="request.digest.algorithm = undefined;")
-        i.fa.fa-trash-o
-        span Remove
-  v-pane(ng-if="request.method === 'POST' || request.method === 'PUT'")
-    v-pane-header Request Payload
-    v-pane-content
-      ui-codemirror(ng-model="request.payload", ui-codemirror-opts="payloadOptions")
+        v-pane(ng-if="request.method === 'POST' || request.method === 'PUT'")
+          v-pane-header Request Payload
+          v-pane-content
+            ui-codemirror(ng-model="request.payload", ui-codemirror-opts="payloadOptions")
+    article(ng-if="response").try-me
+      h3 Response
+      v-accordion(multiple="").vAccordion--default
+        v-pane(ng-if="response.status > 0")
+          v-pane-header HTTP Status
+          v-pane-content
+            h4 {{::response.status}}
+            div {{::response.statusDescription}}
+        v-pane(ng-if="response.status > 0")
+          v-pane-header
+            div.try-me-line
+              div Headers
+              input(ng-model="response.responseHeaderFilter", placeholder="Filter headers", ng-click="$event.stopPropagation();", ng-change="onResponseHeaderFiltering($pane);")
+          v-pane-content
+            div(ng-repeat="h in response.headers | filter:{name:response.responseHeaderFilter}")
+              div.try-me-line
+                label {{::h.name}}
+                div {{::h.value}}
+        v-pane(ng-if="response.status > 0 && !!response.payload")
+          v-pane-header Payload
+          v-pane-content
+            ui-codemirror(ng-model="response.payload", ui-codemirror-opts="payloadOptions")
+        v-pane(ng-if="!!response.error")
+          v-pane-header Client Error
+          v-pane-content
+            ui-codemirror(ng-model="response.error", ui-codemirror-opts="payloadOptions")

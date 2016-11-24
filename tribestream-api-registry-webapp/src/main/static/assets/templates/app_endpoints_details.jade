@@ -8,9 +8,10 @@ div
       i.fa.fa-chevron-right
       span(x-ng-if="historyItem") Revision {{historyItem.revisionId}} by {{historyItem.username}} created on {{historyItem.timestamp | date:'medium'}}
     .buttons
-      .try-me(x-ng-disabled="!isSaveable()", x-ng-click="isSaveable() && tryMeModal()")
-        i.fa.fa-plug
-        span Try Me
+      .try-me(ng-disabled="!isSaveable()")
+        a(ng-href="try/{{application.humanReadableName || ''}}/{{(endpoint.httpMethod || '') | uppercase}}{{(endpoint.path || '') | pathencode}}?version={{application.swagger.info.version || ''}}")
+          i.fa.fa-plug
+          span Try Me
       .save(x-ng-disabled="!isSaveable()", x-ng-click="isSaveable() && save()")
         i.fa.fa-floppy-o
         span Save

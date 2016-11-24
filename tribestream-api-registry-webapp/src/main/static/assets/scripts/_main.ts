@@ -17,6 +17,7 @@ import './app_messages.ts';
 import './auth.ts';
 import './endpoints.ts';
 import './endpoints_details.ts';
+import './tryme.module.ts';
 
 require("../styles/app.sass");
 
@@ -35,7 +36,8 @@ angular.module('tribe-main', [
     'tribe-app',
     'tribe-authentication',
     'tribe-endpoints',
-    'tribe-endpoints-details'
+    'tribe-endpoints-details',
+    'tribe-tryme'
 ])
 
     .config([
@@ -97,6 +99,10 @@ angular.module('tribe-main', [
                             version: $routeParams.version
                         };
                     }]
+                })
+                .when('/try/:application/:verb/:endpoint*', {
+                    template: require('../templates/try_me.jade'),
+                    controller: 'TryMeController'
                 })
                 .when('/endpoint/:application', {
                     template: require('../templates/page_endpoints_details.jade'),
