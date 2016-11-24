@@ -12,6 +12,9 @@ div(data-app)
         .save(x-ng-click="tryIt();")
           i.fa.fa-floppy-o
           span Try It!
+        .save(x-ng-click="sharePopup();")
+          i.fa.fa-floppy-o
+          span Share
     h2 {{request.method}} {{endpoint.path}}
     article.content.try-me
       h3 Request

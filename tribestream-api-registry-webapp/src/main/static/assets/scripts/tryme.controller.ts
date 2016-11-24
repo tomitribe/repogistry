@@ -283,11 +283,7 @@ export class TryMeController {
     };
 
     this.$scope.tryIt = () => {
-      // convert headers, better than watching it which would be slow for no real reason
-      this.$scope.request.headers = this.$scope.headers.filter(h => !!h.name && !!h.value).reduce((accumulator, e) => {
-        accumulator[e.name] = e.value;
-        return accumulator;
-      }, {});
+      this.prepareRequest();
       this.tryMeService.request(this.$scope.request)
         .success(result => {
           this.$scope.response = result;
@@ -305,5 +301,94 @@ export class TryMeController {
         pane.expand(pane.id);
       }
     };
+
+    this.$scope.sharePopup = () => {
+      let popupScope = this.$scope.$new();
+      popupScope.content = this.pageToGistable();
+      this.ngDialog.open({ plain: true, scope: popupScope, template:
+        `<div class="try-me-share"><ui-codemirror ng-model="content")>{{content}}</ui-codemirror></div>`
+      });
+    };
+  }
+
+  private pageToGistable() {
+    this.prepareRequest();
+    let content = `= Tribestream Registry Request Report
+
+== Request
+
+=== URL
+
+${this.$scope.request.url}
+
+=== Payload
+
+[source]
+----
+${this.$scope.request.payload || ''}
+----
+
+=== Digest
+
+${(this.$scope.request.digest || {}).algorithm || 'no'}
+
+=== Headers
+
+|===
+|Name|Value
+`;
+
+    Object.keys(this.$scope.request.headers).forEach(h => content = content + `|${h}|${this.$scope.request.headers[h]}\n`);
+    content = content + '|===\n\n';
+
+    if (this.$scope.response) {
+      content = content + '== Response\n';
+      if (this.$scope.response.status > 0) {
+        content = content + `
+=== Status
+
+__${this.$scope.response.status}__
+
+${this.$scope.response.statusDescription}
+
+=== Headers
+
+|===
+|Name|Value
+`;
+
+
+        Object.values(this.$scope.response.headers).forEach(h => {
+          content = content + '|' + h.name + '|' + h.value + '\n';
+        });
+        content = content + `|===
+
+=== Payload
+
+[source]
+----
+${this.$scope.response.payload || ''}
+----
+`;
+      } else {
+        content = content + `
+=== Error
+
+[source]
+----
+${this.$scope.response.error}
+----
+`;
+      }
+    }
+    return content;
+  }
+
+  private prepareRequest() {
+    // convert headers, better than watching it which would be slow for no real reason
+    this.$scope.request.headers = this.$scope.headers.filter(h => !!h.name && !!h.value).reduce((accumulator, e) => {
+      accumulator[e.name] = e.value;
+      return accumulator;
+    }, {});
   }
 }
