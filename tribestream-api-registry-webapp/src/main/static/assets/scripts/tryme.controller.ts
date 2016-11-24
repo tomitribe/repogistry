@@ -151,6 +151,35 @@ export class TryMeController {
     this.$scope.headerOptions = [ 'Content-Type', 'Accept' ];
     this.$scope.headers.forEach(h => this.$scope.headerOptions.push(h.name));
 
+    this.$scope.queryParameters = parameters.filter(p => p['in'] === 'query' && !!p['name'])
+      .map(p => {
+        return { name: p['name'], value: this.sampleValue(p['type']) };
+      });
+    this.$scope.queryParameterOptions = this.$scope.queryParameters.map(h => h.name);
+
+    this.$scope.pathParameters = parameters.filter(p => p['in'] === 'path' && !!p['name'])
+      .map(p => {
+        return { name: p['name'], value: this.sampleValue(p['type']) };
+      });
+    this.$scope.pathParameterOptions = this.$scope.pathParameters.map(h => h.name);
+
+    const recomputeUrl = () => {
+      this.$scope.request.url = url;
+      ['queryParameters', 'pathParameters'].forEach(n => {
+        this.$scope[n].filter(p => !!p.name && !!p.value).forEach(p => {
+          this.$scope.request.url = this.$scope.request.url
+            .replace('{' + p.name + '}', p.value)
+            .replace(':' + p.name, p.value)/*this one should be legacy*/;
+        });
+      });
+      this.$scope.queryParameters.filter(p => !!p.name && !!p.value).forEach(p => { // add query params not in swagger
+        if (this.$scope.request.url.indexOf('{' + p.name + '}') < 0 && this.$scope.request.url.indexOf(':' + p.name) < 0) {
+          this.$scope.request.url = this.$scope.request.url + (this.$scope.request.url.indexOf('?') < 0 ? '?' : '&') + p.name + '=' + encodeURIComponent(p.value);
+        }
+      });
+    };
+    ['queryParameters', 'pathParameters'].forEach(n => this.$scope.$watch(n, (newVal, oldVal) => recomputeUrl(), true));
+
     this.$scope.onHeaderChange = (name, header) => {
       if (!name) {
         if (!!header.$$proposals) {
