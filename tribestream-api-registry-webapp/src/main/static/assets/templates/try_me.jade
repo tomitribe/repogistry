@@ -12,6 +12,9 @@ div(data-app)
         .save(x-ng-click="tryIt();")
           i.fa.fa-floppy-o
           span Try It!
+        .save(x-ng-click="sharePopup();")
+          i.fa.fa-floppy-o
+          span Share
     h2 {{request.method}} {{endpoint.path}}
     article.content.try-me
       h3 Request
@@ -23,22 +26,22 @@ div(data-app)
           v-pane-header
             div.try-me-line
               div Headers
-              div(ng-click="addHeader();$accordion.expand(0);$event.stopPropagation();").try-me-button
+              div(ng-click="addHeader();$pane.expand($pane.id);$event.stopPropagation();").try-me-button
                 i.fa.fa-add
                 span Add
-              div(ng-click="addOAuth2();$accordion.expand(0);$event.stopPropagation();").try-me-button
+              div(ng-click="addOAuth2();$pane.expand($pane.id);$event.stopPropagation();").try-me-button
                 i.fa.fa-add
                 span OAuth2
-              div(ng-click="addSignature();$accordion.expand(0);$event.stopPropagation();").try-me-button
+              div(ng-click="addSignature();$pane.expand($pane.id);$event.stopPropagation();").try-me-button
                 i.fa.fa-add
                 span HTTP Signature
-              div(ng-click="addBasic();$accordion.expand(0);$event.stopPropagation();").try-me-button
+              div(ng-click="addBasic();$pane.expand($pane.id);$event.stopPropagation();").try-me-button
                 i.fa.fa-add
                 span Basic
-              div(ng-click="addDate();$accordion.expand(0);$event.stopPropagation();").try-me-button
+              div(ng-click="addDate();$pane.expand($pane.id);$event.stopPropagation();").try-me-button
                 i.fa.fa-add
                 span Date
-              div(ng-click="addDigest();$accordion.expand(0);$event.stopPropagation();").try-me-button
+              div(ng-click="addDigest();$pane.expand($pane.id);$event.stopPropagation();").try-me-button
                 i.fa.fa-add
                 span Digest
           v-pane-content
@@ -54,6 +57,50 @@ div(data-app)
                     div {{p}}
                 div
                   div(ng-click="headers.splice($index, 1)")
+                    i.fa.fa-trash-o
+                    span Remove
+          v-pane
+            v-pane-header
+              div.try-me-line
+                div Path Parameters
+                div(ng-click="pathParameters.push({});$pane.expand($pane.id);$event.stopPropagation();").try-me-button
+                  i.fa.fa-add
+                  span Add
+            v-pane-content
+              div(ng-repeat="param in pathParameters track by $index")
+                div.try-me-line
+                  ui-select(ng-model="param.name", placeholder="Path parameter name", tagging, tagging-label="false", tagging-tokens="ENTER|,")
+                    ui-select-match(placeholder="Path parameter name") {{$select.selected}}
+                    ui-select-choices(repeat="p in pathParameterOptions | filter:$select.search track by $index")
+                      div {{p}}
+                  ui-select(ng-model="param.value", placeholder="Path parameter value", tagging, tagging-label="false", tagging-tokens="ENTER|,")
+                    ui-select-match(placeholder="Path parameter value") {{$select.selected}}
+                    ui-select-choices(repeat="p in [param.value] | filter:$select.search track by $index")
+                      div {{p}}
+                  div
+                    div(ng-click="pathParameters.splice($index, 1)")
+                      i.fa.fa-trash-o
+                      span Remove
+        v-pane
+          v-pane-header
+            div.try-me-line
+              div Query Parameters
+              div(ng-click="queryParameters.push({});$pane.expand($pane.id);$event.stopPropagation();").try-me-button
+                i.fa.fa-add
+                span Add
+          v-pane-content
+            div(ng-repeat="param in queryParameters track by $index")
+              div.try-me-line
+                ui-select(ng-model="param.name", placeholder="Query parameter name", tagging, tagging-label="false", tagging-tokens="ENTER|,")
+                  ui-select-match(placeholder="Query parameter name") {{$select.selected}}
+                  ui-select-choices(repeat="p in queryParameterOptions | filter:$select.search track by $index")
+                    div {{p}}
+                ui-select(ng-model="param.value", placeholder="Query parameter value", tagging, tagging-label="false", tagging-tokens="ENTER|,")
+                  ui-select-match(placeholder="Query parameter value") {{$select.selected}}
+                  ui-select-choices(repeat="p in [param.value] | filter:$select.search track by $index")
+                    div {{p}}
+                div
+                  div(ng-click="queryParameters.splice($index, 1)")
                     i.fa.fa-trash-o
                     span Remove
         v-pane(ng-if="!!request.digest.algorithm")
