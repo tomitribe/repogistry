@@ -26,8 +26,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
 import org.tomitribe.tribestream.registryng.service.serialization.SwaggerJsonMapperProducer;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
@@ -37,11 +39,13 @@ import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import java.io.IOException;
+import java.util.Collection;
 
 import static lombok.AccessLevel.PRIVATE;
 import static org.tomitribe.tribestream.registryng.entities.Normalizer.normalize;
@@ -113,6 +117,10 @@ public class Endpoint extends AbstractEntity {
 
     @Column(name = "HUMAN_READABLE_PATH", nullable = false)
     private String humanReadablePath; // stored in case we make it editable
+
+    @NotAudited
+    @OneToMany(mappedBy = "endpoint", cascade = CascadeType.REMOVE)
+    private Collection<TryMeExecution> executions;
 
     private transient Operation operation;
 

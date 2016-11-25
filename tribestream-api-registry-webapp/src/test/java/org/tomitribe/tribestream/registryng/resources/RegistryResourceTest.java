@@ -21,6 +21,7 @@ package org.tomitribe.tribestream.registryng.resources;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.models.Swagger;
 import org.apache.openejb.testing.Application;
+import org.apache.tomee.embedded.TomEEEmbeddedApplicationRunner;
 import org.apache.tomee.embedded.junit.TomEEEmbeddedSingleRunner;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,6 +33,7 @@ import org.tomitribe.tribestream.registryng.domain.search.ApplicationSearchResul
 import org.tomitribe.tribestream.registryng.domain.search.SearchResult;
 import org.tomitribe.tribestream.registryng.entities.Endpoint;
 import org.tomitribe.tribestream.registryng.test.Registry;
+import org.tomitribe.tribestream.registryng.test.elasticsearch.Elasticsearch;
 import org.tomitribe.tribestream.registryng.test.retry.Retry;
 import org.tomitribe.tribestream.registryng.test.retry.RetryRule;
 
@@ -60,6 +62,9 @@ public class RegistryResourceTest {
 
     @PersistenceContext
     private EntityManager em;
+
+    @TomEEEmbeddedApplicationRunner.LifecycleTask
+    private Elasticsearch elasticsearchHandler;
 
     @Inject
     @Tribe
@@ -91,6 +96,7 @@ public class RegistryResourceTest {
     @Test
     @Retry
     public void searchQuery() {
+        elasticsearchHandler.refresh();
         final List<Endpoint> endpoints = em.createQuery("select e from Endpoint e", Endpoint.class).getResultList();
 
         // no query param

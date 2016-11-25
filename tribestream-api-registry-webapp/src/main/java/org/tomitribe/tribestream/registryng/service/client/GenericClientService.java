@@ -18,6 +18,9 @@
  */
 package org.tomitribe.tribestream.registryng.service.client;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,6 +28,9 @@ import org.apache.deltaspike.core.api.config.ConfigProperty;
 import org.tomitribe.auth.signatures.Signature;
 import org.tomitribe.auth.signatures.Signer;
 import org.tomitribe.tribestream.registryng.documentation.Description;
+import org.tomitribe.tribestream.registryng.entities.Endpoint;
+import org.tomitribe.tribestream.registryng.entities.TryMeExecution;
+import org.tomitribe.tribestream.registryng.security.LoginContext;
 import org.tomitribe.util.Duration;
 
 import javax.annotation.PostConstruct;
@@ -34,6 +40,9 @@ import javax.inject.Inject;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.transaction.Transactional;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -50,6 +59,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -60,6 +70,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyMap;
+import static java.util.Objects.requireNonNull;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
@@ -86,6 +97,15 @@ public class GenericClientService {
     @Description("Default OAuth2 client secret used (only with `tribe.registry.ui.try-me.oauth2.client.name`).")
     @ConfigProperty(name = "tribe.registry.ui.try-me.oauth2.client.secret")
     private String oauth2ClientSecret;
+
+    @PersistenceContext
+    private EntityManager em;
+
+    @Inject
+    private LoginContext user;
+
+    private final ObjectMapper executionMapper = new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
 
     private String timeout;
 
@@ -183,6 +203,53 @@ public class GenericClientService {
         }
         digest.update(payload.getBytes(StandardCharsets.UTF_8));
         return algorithm + '=' + Base64.getEncoder().encodeToString(digest.digest());
+    }
+
+    @Transactional
+    public int countExecutions(final String id) {
+        return em.createNamedQuery("TryMeExecution.count", Number.class)
+                .setParameter("endpointId", id)
+                .getSingleResult().intValue();
+    }
+
+    @Transactional
+    public TryMeExecution save(final String endpointId, final Request request, final Response response, final String error) {
+        final Date now = new Date();
+        final TryMeExecution execution = new TryMeExecution();
+        execution.setCreatedAt(now);
+        execution.setUpdatedAt(now);
+        execution.setCreatedBy(user.getUsername());
+        execution.setUpdatedBy(execution.getCreatedBy());
+        execution.setEndpoint(requireNonNull(em.find(Endpoint.class, endpointId)));
+        execution.setResponseError(error);
+        try {
+            execution.setRequest(executionMapper.writeValueAsString(request));
+            execution.setResponse(executionMapper.writeValueAsString(response));
+        } catch (final JsonProcessingException e) {
+            throw new IllegalArgumentException(e);
+        }
+        em.persist(execution);
+        return execution;
+    }
+
+    public <T> T loadExecutionMember(final Class<T> type, final String value) {
+        try {
+            return executionMapper.readValue(value, type);
+        } catch (final IOException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+    public TryMeExecution find(final String execution) {
+        return em.find(TryMeExecution.class, execution);
+    }
+
+    public Collection<TryMeExecution> findExecutions(final String endpointId, final int from, final int max) {
+        return em.createNamedQuery("TryMeExecution.findByEndpoint", TryMeExecution.class)
+                .setParameter("endpointId", endpointId)
+                .setFirstResult(from)
+                .setMaxResults(max)
+                .getResultList();
     }
 
     public Response invoke(final Request request) {
