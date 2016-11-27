@@ -79,8 +79,8 @@
     <surefire.argLine>-Xmx1024m -Duser.language=en -Duser.region=en_US</surefire.argLine>
 
 
-    <version.tomcat>8.5.3</version.tomcat>
-    <version.tomee>7.0.1</version.tomee>
+    <version.tomcat>8.5.6</version.tomcat>
+    <version.tomee>7.0.2</version.tomee>
 
     <version.tomitribe-util>1.2.1</version.tomitribe-util>
 

@@ -18,51 +18,32 @@
  */
 package org.tomitribe.tribestream.registryng.entities;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.Version;
-import java.util.Date;
+import javax.persistence.Entity;
+import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 
 @Getter
 @Setter
-@MappedSuperclass
-public class AbstractEntity {
+@Entity
+@NamedQueries({
+        @NamedQuery(name = "TryMeExecution.count", query = "select count(e) from TryMeExecution e where e.endpoint.id = :endpointId"),
+        @NamedQuery(name = "TryMeExecution.findByEndpoint", query = "select e from TryMeExecution e where e.endpoint.id = :endpointId")
+})
+public class TryMeExecution extends AbstractEntity {
+    @ManyToOne(optional = false)
+    private Endpoint endpoint;
 
-    @Id
-    @Setter(AccessLevel.NONE)
-    @GeneratedValue(generator = "system-uuid")
-    @GenericGenerator(name = "system-uuid", strategy = "uuid2")
-    @Column(length = 36, nullable = false)
-    private String id;
+    @Lob
+    private String request;
 
-    @Version
-    @Column(name = "VER", nullable = false)
-    private int entityVersion;
+    @Lob
+    private String response;
 
-    @Column
-    private Date createdAt;
-
-    @Column
-    private Date updatedAt;
-
-    @Column
-    private String createdBy;
-
-    @Column
-    private String updatedBy;
-
-
-    public AbstractEntity() {
-    }
-
-    public AbstractEntity(final String id) {
-        this.id = id;
-    }
+    @Lob
+    private String responseError;
 }

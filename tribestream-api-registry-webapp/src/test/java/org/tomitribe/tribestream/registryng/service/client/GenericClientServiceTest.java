@@ -20,20 +20,32 @@ package org.tomitribe.tribestream.registryng.service.client;
 
 import org.apache.openejb.testing.Application;
 import org.apache.tomee.embedded.junit.TomEEEmbeddedSingleRunner;
+import org.junit.After;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
 import org.tomitribe.auth.signatures.Algorithm;
+import org.tomitribe.tribestream.registryng.entities.Endpoint;
+import org.tomitribe.tribestream.registryng.entities.TryMeExecution;
 import org.tomitribe.tribestream.registryng.test.Registry;
 
+import javax.annotation.Resource;
 import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.transaction.UserTransaction;
 import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class GenericClientServiceTest {
@@ -45,6 +57,58 @@ public class GenericClientServiceTest {
 
     @Inject
     private GenericClientService client;
+
+    @PersistenceContext
+    private EntityManager em;
+
+    @Resource
+    private UserTransaction ut;
+
+    @After
+    public void cleanUp() {
+        registry.restoreData();
+    }
+
+    @Test
+    public void tryMeExecutionCrud() { // not split cause logic is quite trivial there
+        final Endpoint endpoint = em.createQuery("select e from Endpoint e", Endpoint.class).setMaxResults(1).getSingleResult();
+        {   // count with no execution
+            assertEquals(0, client.countExecutions(endpoint.getId()));
+        }
+        {   // one execution
+            final GenericClientService.Request request = new GenericClientService.Request();
+            request.setUrl("http://test");
+            request.setMethod("POST");
+            request.setHeaders(new HashMap<String, String>() {{
+                put("Some-Header", "Value");
+            }});
+            final TryMeExecution out = client.save(endpoint.getId(), request, new GenericClientService.Response(204, new HashMap<String, String>() {{
+                put("Some-Header", "Value");
+            }}, "{}"), null);
+            assertEquals(1, client.countExecutions(endpoint.getId()));
+
+            // check we can find pages
+            final Collection<TryMeExecution> executions = client.findExecutions(endpoint.getId(), 0, 2);
+            assertNotNull(executions);
+            assertEquals(1, executions.size());
+
+            // we can find item
+            final TryMeExecution execution = client.find(out.getId());
+            Stream.of(execution.getRequest(), execution.getResponse(), execution.getCreatedBy(), execution.getUpdatedBy(), execution.getUpdatedAt(), execution.getCreatedAt())
+                    .forEach(Assert::assertNotNull);
+
+            assertEquals(executions.iterator().next().getId(), execution.getId());
+
+            // check we can deserialize
+            final GenericClientService.Request loadedRequest = client.loadExecutionMember(GenericClientService.Request.class, execution.getRequest());
+            assertEquals("POST", loadedRequest.getMethod());
+            assertEquals(new HashMap<String, String>() {{
+                put("Some-Header", "Value");
+            }}, loadedRequest.getHeaders());
+            assertEquals("http://test", loadedRequest.getUrl());
+            assertNull(loadedRequest.getPayload());
+        }
+    }
 
     @Test
     public void digest() {
