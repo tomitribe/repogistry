@@ -3,10 +3,9 @@ import {TryMeController} from './tryme.controller.ts';
 
 angular.module('tribe-tryme', [
   'ui.codemirror', 'ui.select',
-  'tribe-widget-password', 'tribe-option-picker', 'tomitribe-dropdown' ])
-
-  .service('TryMeService', ['$http', $http => new TryMeService($http)])
-
+  'tomitribe-button', 'tomitribe-dropdown', 'tomitribe-fab',
+  'tribe-widget-password', 'tribe-option-picker'
+]).service('TryMeService', ['$http', $http => new TryMeService($http)])
   .controller('TryMeController', TryMeController)
-
+  // should be moved to be global but not yet the case
   .config(['uiSelectConfig', function(uiSelectConfig) { uiSelectConfig.theme = 'selectize'; }]);

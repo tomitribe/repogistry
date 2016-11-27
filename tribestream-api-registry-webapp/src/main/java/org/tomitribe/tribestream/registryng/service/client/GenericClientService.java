@@ -228,7 +228,8 @@ public class GenericClientService {
     }
 
     @Transactional
-    public TryMeExecution save(final String endpointId, final Request request, final Response response, final String error) {
+    public TryMeExecution save(final String endpointId, final Request request, final Response response,
+                               final String error) {
         final Date now = new Date();
         final TryMeExecution execution = new TryMeExecution();
         execution.setCreatedAt(now);
@@ -277,6 +278,7 @@ public class GenericClientService {
             headers.forEach(builder::header);
 
             final String payload = request.getPayload();
+            final long start = System.nanoTime();
             if (payload == null || payload.isEmpty()) {
                 response = builder.method(request.method);
             } else {
@@ -285,6 +287,7 @@ public class GenericClientService {
                         headers.computeIfAbsent("Content-Type", k -> payload.startsWith("{") ?
                                 MediaType.APPLICATION_JSON : (payload.startsWith("<") ? MediaType.APPLICATION_XML : MediaType.WILDCARD))));
             }
+            final long end = System.nanoTime();
             return new Response(
                     response.getStatus(),
                     response.getStringHeaders().entrySet().stream()
@@ -292,7 +295,8 @@ public class GenericClientService {
                                     Map.Entry::getKey,
                                     t -> t.getValue().stream().collect(joining(",")),
                                     (s, s2) -> Stream.of(s, s2).filter(v -> v != null).collect(joining(",")))),
-                    response.getStatus() != javax.ws.rs.core.Response.Status.NO_CONTENT.getStatusCode() ? response.readEntity(String.class) : "");
+                    response.getStatus() != javax.ws.rs.core.Response.Status.NO_CONTENT.getStatusCode() ? response.readEntity(String.class) : "",
+                    TimeUnit.NANOSECONDS.toMillis(end - start));
         } finally {
             client.close();
         }
@@ -352,6 +356,7 @@ public class GenericClientService {
         private int status;
         private Map<String, String> headers;
         private String payload;
+        private long clientExecutionDurationMs;
     }
 
     @Data

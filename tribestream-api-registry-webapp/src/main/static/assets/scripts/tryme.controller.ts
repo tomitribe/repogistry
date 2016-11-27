@@ -73,6 +73,24 @@ export class TryMeController {
         .error(err => systemMessagesService.error('Can\'t execute the request, check the information please'));
     };
 
+    $scope.mainMenuOptions = [{
+      displayName: 'Invoke',
+      icon: 'fa-bolt',
+      invoke: () => $scope.tryIt()
+    }, {
+      displayName: 'Invoke & Download',
+      icon: 'fa-cloud-download',
+      invoke: () => {
+        alert('TODO: not yet implemented');
+      }
+    }, {
+      displayName: 'Import & Share',
+      icon: 'fa-cloud-upload',
+      invoke: () => {
+        alert('TODO: not yet implemented');
+      }
+    }];
+
     $scope.menuOptions = [{
       displayName: 'Add OAuth 2.0',
       invoke: () => $scope.request.oauth2.$$show = true
