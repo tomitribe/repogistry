@@ -29,6 +29,50 @@ export class TryMeController {
       }
     };
 
+    $scope.removeHeader = h => {
+      $scope.headers = $scope.headers.filter(i => i.name != h.name);
+    };
+    $scope.removePathParameter = p => {
+      $scope.pathParameters = $scope.pathParameters.filter(i => i.name != p.name);
+    };
+    $scope.removeQueryParameter = p => {
+      $scope.queryParameters = $scope.queryParameters.filter(i => i.name != p.name);
+    };
+
+    $scope.onHeaderChange = (name, header) => {
+      if (!name) {
+        if (!!header.$$proposals) {
+          header.$$proposals = [];
+        }
+        return;
+      }
+      if ((name == 'Content-Type' || name == 'Accept') && !header.$$proposals) {
+        header.$$proposals = ['application/json', 'application/xml', 'application/x-www-form-urlencoded', 'text/plain'];
+      } else if (name == 'Date' && !header.$$proposals) {
+        header.$$proposals = [new Date().toUTCString()];
+      } else if (!!header.$$proposals) {
+        header.$$proposals = [];
+      }
+    };
+
+    $scope.tryIt = () => {
+      // convert headers, better than watching it which would be slow for no real reason
+      $scope.request.headers = $scope.headers.filter(h => !!h.name && !!h.value).reduce((accumulator, e) => {
+        accumulator[e.name] = e.value;
+        return accumulator;
+      }, {});
+      tryMeService.request($scope.request)
+        .success(result => {
+          $scope.response = result;
+          $scope.response.payloadOptions = $scope.payloadOptions;
+          $scope.response.statusDescription = this.statusDescription(result.status);
+          $scope.response.headers = Object.keys($scope.response.headers).map(key => {
+             return {name: key, value: $scope.response.headers[key]};
+          });
+        })
+        .error(err => systemMessagesService.error('Can\'t execute the request, check the information please'));
+    };
+
     $scope.menuOptions = [{
       displayName: 'Add OAuth 2.0',
       invoke: () => $scope.request.oauth2.$$show = true
@@ -75,13 +119,22 @@ export class TryMeController {
         alert('TODO: not yet done');
       }
     }];
-
     $scope.oauth2Options = [{
       displayName: 'Resource Owner',
       invoke: () => $scope.request.oauth2.$$resourceOwner = true
     }, {
       displayName: 'Client Credentials',
       invoke: () => $scope.request.oauth2.$$client = true
+    }];
+    $scope.parametersOptions = [{
+      displayName: 'Add Header',
+      invoke: () => $scope.headers.push({})
+    }, {
+      displayName: 'Add Path Parameter',
+      invoke: () => $scope.pathParameters.push({})
+    }, {
+      displayName: 'Add Query Parameter',
+      invoke: () => $scope.queryParameters.push({})
     }];
 
     $scope.removeOAuth2Client = () => {
@@ -129,6 +182,116 @@ export class TryMeController {
             this.init();
           });
       });
+  }
+
+  private init() {
+    const swagger = this.$scope.application.swagger;
+    const url = (this.$scope.endpoint.endpointProtocol || 'http') + '://' + swagger.host + (swagger.basePath === '/' ? '' : swagger.basePath) + this.$scope.endpoint.path;
+    const parameters = ((this.$scope.endpoint.operation || {}).parameters || {});
+    const querySample = parameters.filter(p => p['in'] === 'query' && !!p['name'])
+      .reduce((acc, param) => acc + (!!acc ? '&' : '?') + param['name'] + '=' + this.sampleValue(param['type']), '');
+
+    // should we check parameters for a Body? this is rarely done actually
+    const payload = this.$scope.endpoint.httpMethod === 'post' || this.$scope.endpoint.httpMethod === 'put' ? '{}' : undefined;
+
+    this.$scope.endpoint = this.$scope.endpoint;
+    this.$scope.payloadOptions = {lineNumbers: true, mode: 'javascript'};
+    this.$scope.request = {
+      ignoreSsl: url.indexOf('https') == 0,
+      method: this.$scope.endpoint.httpMethod.toUpperCase(),
+      url: url + querySample,
+      payload: payload,
+      oauth2: {
+        header: 'Authorization',
+        grantType: 'password',
+        // for the ui
+        $$show: false,
+        $$resourceOwner: false,
+        $$client: false
+      },
+      signature: {
+        header: 'Authorization',
+        algorithm: 'hmac-sha256',
+        headers: ['(request-target)'],
+        // ui
+        $$show: false
+      },
+      basic: {
+        header: 'Authorization',
+        // ui
+        $$show: false
+      },
+      digest: {
+        header: 'Digest',
+        // ui
+        $$show: false
+      },
+      // ui
+      $$forceBody: false
+    };
+
+    // we pre-fill all headers of the operation + accept/content-type if consumes/produces are there
+    this.$scope.headers = parameters.filter(p => p['in'] === 'header' && !!p['name'])
+      .filter(p => 'content-type' !== p['name'] && 'accept' !== p['name'])
+      .map(p => {
+        return { name: p['name'], value: this.sampleValue(p['type']), required: p.required || false, description: p.description };
+      });
+    if (this.$scope.endpoint.operation.consumes && this.$scope.endpoint.operation.consumes.length) {
+      this.$scope.headers.push({ name: 'Content-Type', value: this.$scope.endpoint.operation.consumes[0] });
+    }
+    if (this.$scope.endpoint.operation.produces && this.$scope.endpoint.operation.produces.length) {
+      this.$scope.headers.push({ name: 'Accept', value: this.$scope.endpoint.operation.produces[0] });
+    }
+    this.$scope.headerOptions = [ 'Content-Type', 'Accept', 'Date' ];
+    this.$scope.headers.forEach(h => this.$scope.headerOptions.push(h.name));
+
+    this.$scope.queryParameters = parameters.filter(p => p['in'] === 'query' && !!p['name'])
+      .map(p => {
+        return { name: p['name'], value: this.sampleValue(p['type']), required: p.required || false, description: p.description };
+      });
+    this.$scope.queryParameterOptions = this.$scope.queryParameters.map(h => h.name);
+
+    this.$scope.pathParameters = parameters.filter(p => p['in'] === 'path' && !!p['name'])
+      .map(p => {
+        return { name: p['name'], value: this.sampleValue(p['type']), required: p.required || false, description: p.description };
+      });
+    this.$scope.pathParameterOptions = this.$scope.pathParameters.map(h => h.name);
+
+    ['queryParameters', 'pathParameters'].forEach(n => this.$scope.$watch(n, (newVal, oldVal) => this.recomputeUrl(url), true));
+  }
+
+  private recomputeUrl(url) {
+    this.$scope.request.url = url;
+    ['queryParameters', 'pathParameters'].forEach(n => {
+      this.$scope[n].filter(p => !!p.name && !!p.value).forEach(p => {
+        this.$scope.request.url = this.$scope.request.url
+          .replace('{' + p.name + '}', p.value)
+          .replace(':' + p.name, p.value)/*this one should be legacy*/;
+      });
+    });
+    this.$scope.queryParameters.filter(p => !!p.name && !!p.value).forEach(p => { // add query params not in swagger
+      if (this.$scope.request.url.indexOf('{' + p.name + '}') < 0 && this.$scope.request.url.indexOf(':' + p.name) < 0) {
+        this.$scope.request.url = this.$scope.request.url + (this.$scope.request.url.indexOf('?') < 0 ? '?' : '&') + p.name + '=' + encodeURIComponent(p.value);
+      }
+    });
+  };
+
+  private sampleValue(type) {
+    switch(type || 'string') {
+      case 'boolean':
+        return 'true';
+      case 'integer':
+      case 'long':
+      case 'int32':
+      case 'int64':
+      case 'number':
+        return '10';
+      case 'float':
+      case 'double':
+        return '10.0';
+      default:
+        return 'value';
+    }
   }
 
   private statusDescription(httpStatus) { // generated from wikipedia
@@ -194,147 +357,5 @@ export class TryMeController {
       default:
         return 'unknown';
     }
-  }
-
-  private sampleValue(type) {
-    switch(type || 'string') {
-      case 'boolean':
-        return 'true';
-      case 'integer':
-      case 'long':
-      case 'int32':
-      case 'int64':
-      case 'number':
-        return '10';
-      case 'float':
-      case 'double':
-        return '10.0';
-      default:
-        return 'value';
-    }
-  }
-
-  private init() {
-    const swagger = this.$scope.application.swagger;
-    const url = (this.$scope.endpoint.endpointProtocol || 'http') + '://' + swagger.host + (swagger.basePath === '/' ? '' : swagger.basePath) + this.$scope.endpoint.path;
-    const parameters = ((this.$scope.endpoint.operation || {}).parameters || {});
-    const querySample = parameters.filter(p => p['in'] === 'query' && !!p['name'])
-      .reduce((acc, param) => acc + (!!acc ? '&' : '?') + param['name'] + '=' + this.sampleValue(param['type']), '');
-
-    // should we check parameters for a Body? this is rarely done actually
-    const payload = this.$scope.endpoint.httpMethod === 'post' || this.$scope.endpoint.httpMethod === 'put' ? '{}' : undefined;
-
-    this.$scope.endpoint = this.$scope.endpoint;
-    this.$scope.payloadOptions = {lineNumbers: true, mode: 'javascript'};
-    this.$scope.request = {
-      ignoreSsl: url.indexOf('https') == 0,
-      method: this.$scope.endpoint.httpMethod.toUpperCase(),
-      url: url + querySample,
-      payload: payload,
-      oauth2: {
-        header: 'Authorization',
-        grantType: 'password',
-        // for the ui
-        $$show: false,
-        $$resourceOwner: false,
-        $$client: false
-      },
-      signature: {
-        header: 'Authorization',
-        algorithm: 'hmac-sha256',
-        headers: ['(request-target)'],
-        // ui
-        $$show: false
-      },
-      basic: {
-        header: 'Authorization',
-        // ui
-        $$show: false
-      },
-      digest: {
-        header: 'Digest',
-        // ui
-        $$show: false
-      }
-    };
-
-    // we pre-fill all headers of the operation + accept/content-type if consumes/produces are there
-    this.$scope.headers = parameters.filter(p => p['in'] === 'header' && !!p['name'])
-      .filter(p => 'content-type' !== p['name'] && 'accept' !== p['name'])
-      .map(p => {
-        return { name: p['name'], value: this.sampleValue(p['type']) };
-      });
-    if (this.$scope.endpoint.operation.consumes && this.$scope.endpoint.operation.consumes.length) {
-      this.$scope.headers.push({ name: 'Content-Type', value: this.$scope.endpoint.operation.consumes[0] });
-    }
-    if (this.$scope.endpoint.operation.produces && this.$scope.endpoint.operation.produces.length) {
-      this.$scope.headers.push({ name: 'Accept', value: this.$scope.endpoint.operation.produces[0] });
-    }
-    this.$scope.headerOptions = [ 'Content-Type', 'Accept' ];
-    this.$scope.headers.forEach(h => this.$scope.headerOptions.push(h.name));
-
-    this.$scope.queryParameters = parameters.filter(p => p['in'] === 'query' && !!p['name'])
-      .map(p => {
-        return { name: p['name'], value: this.sampleValue(p['type']) };
-      });
-    this.$scope.queryParameterOptions = this.$scope.queryParameters.map(h => h.name);
-
-    this.$scope.pathParameters = parameters.filter(p => p['in'] === 'path' && !!p['name'])
-      .map(p => {
-        return { name: p['name'], value: this.sampleValue(p['type']) };
-      });
-    this.$scope.pathParameterOptions = this.$scope.pathParameters.map(h => h.name);
-
-    const recomputeUrl = () => {
-      this.$scope.request.url = url;
-      ['queryParameters', 'pathParameters'].forEach(n => {
-        this.$scope[n].filter(p => !!p.name && !!p.value).forEach(p => {
-          this.$scope.request.url = this.$scope.request.url
-            .replace('{' + p.name + '}', p.value)
-            .replace(':' + p.name, p.value)/*this one should be legacy*/;
-        });
-      });
-      this.$scope.queryParameters.filter(p => !!p.name && !!p.value).forEach(p => { // add query params not in swagger
-        if (this.$scope.request.url.indexOf('{' + p.name + '}') < 0 && this.$scope.request.url.indexOf(':' + p.name) < 0) {
-          this.$scope.request.url = this.$scope.request.url + (this.$scope.request.url.indexOf('?') < 0 ? '?' : '&') + p.name + '=' + encodeURIComponent(p.value);
-        }
-      });
-    };
-    ['queryParameters', 'pathParameters'].forEach(n => this.$scope.$watch(n, (newVal, oldVal) => recomputeUrl(), true));
-
-    this.$scope.onHeaderChange = (name, header) => {
-      if (!name) {
-        if (!!header.$$proposals) {
-          header.$$proposals = [];
-        }
-        return;
-      }
-      if ((name == 'Content-Type' || name == 'Accept') && !header.$$proposals) {
-        header.$$proposals = ['application/json', 'application/xml', 'application/x-www-form-urlencoded', 'text/plain'];
-      } else if (!!header.$$proposals) {
-        header.$$proposals = [];
-      }
-    };
-    this.$scope.addHeader = () => {
-      this.$scope.headers.push({});
-    };
-
-    this.$scope.tryIt = () => {
-      // convert headers, better than watching it which would be slow for no real reason
-      this.$scope.request.headers = this.$scope.headers.filter(h => !!h.name && !!h.value).reduce((accumulator, e) => {
-        accumulator[e.name] = e.value;
-        return accumulator;
-      }, {});
-      this.tryMeService.request(this.$scope.request)
-        .success(result => {
-          this.$scope.response = result;
-          this.$scope.response.payloadOptions = this.$scope.payloadOptions;
-          this.$scope.response.statusDescription = this.statusDescription(result.status);
-          this.$scope.response.headers = Object.keys(this.$scope.response.headers).map(key => {
-             return {name: key, value: this.$scope.response.headers[key]};
-          });
-        })
-        .error(err => this.systemMessagesService.error('Can\'t execute the request, check the information please'));
-    };
   }
 }
