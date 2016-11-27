@@ -8,10 +8,14 @@ div(data-app)
         a(x-ng-href="application/{{endpointUrlInfo.applicationName}}?version={{endpointUrlInfo.version || ''}}") {{endpointUrlInfo.applicationName}} {{endpointUrlInfo.version || ''}}
         i.fa.fa-chevron-right
         a(x-ng-href="endpoint/{{endpointUrlInfo.applicationName}}/{{endpointUrlInfo.verb}}/{{endpointUrlInfo.endpointPath}}?version={{endpointUrlInfo.version || ''}}") {{endpointUrlInfo.verb}} {{endpointUrlInfo.endpointPath}} {{endpointUrlInfo.version || ''}}
-      .buttons
-        .save(x-ng-click="tryIt();")
-          i.fa.fa-floppy-o
-          span Try It!
+      tribe-fab(fab-direction='down' fab-trigger='fabClick' opened-status='addButtonStatus')
+          tribe-fab-trigger
+            tribe-button(tribe-size='l', tribe-type='fab')
+              span.alegreya.rt +
+          tribe-fab-actions
+            tribe-button(ng-repeat="opt in mainMenuOptions", tribe-size='m', tribe-type='fab', href="#", ng-click="onPickerSelect(opt);$dropdown.close();")
+              i(class="fa {{opt.icon}}")
+              div.text {{opt.displayName}}
       tribe-dropdown(dropdown-direction='down', pull-direction='left', dropdown-trigger='dropdownClick', auto-close="true")
           tribe-dropdown-trigger
             i.bimg(style="font-size: 25px;")
@@ -200,6 +204,9 @@ div(data-app)
             div
               h2 Response
               span(ng-if="response.status > 0") {{::response.status}}
+              span(ng-if="response.status > 0 && response.clientExecutionDurationMs >= 0")
+                i.fa.fa-exchange
+                span {{response.clientExecutionDurationMs}} ms
               // div {{::response.statusDescription}}
             div(ng-if="response.status > 0")
               div(ng-show="headers.length + pathParameters.length + queryParameters.length > 0")
@@ -216,23 +223,3 @@ div(data-app)
               ui-codemirror(ng-model="response.payload", ui-codemirror-opts="payloadOptions")
             div(ng-if="response.status <= 0")
               ui-codemirror(ng-model="response.error", ui-codemirror-opts="payloadOptions")
-//
-
-      v-pane(ng-if="response.status > 0")
-        v-pane-header
-          div.try-me-line
-            div Headers
-            input(ng-model="response.responseHeaderFilter", placeholder="Filter headers", ng-click="$event.stopPropagation();", ng-change="onResponseHeaderFiltering($pane);")
-        v-pane-content
-          div(ng-repeat="h in response.headers | filter:{name:response.responseHeaderFilter}")
-            div.try-me-line
-              label {{::h.name}}
-              div {{::h.value}}
-      v-pane(ng-if="response.status > 0 && !!response.payload")
-        v-pane-header Payload
-        v-pane-content
-          ui-codemirror(ng-model="response.payload", ui-codemirror-opts="payloadOptions")
-      v-pane(ng-if="!!response.error")
-        v-pane-header Client Error
-        v-pane-content
-          ui-codemirror(ng-model="response.error", ui-codemirror-opts="payloadOptions")

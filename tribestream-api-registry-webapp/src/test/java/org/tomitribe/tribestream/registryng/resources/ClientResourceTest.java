@@ -177,6 +177,7 @@ public class ClientResourceTest {
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
         assertTrue(response.getPayload(), response.getPayload().contains("GET/api/spy"));
         assertTrue(response.getPayload(), response.getPayload().contains("digest=sha-256=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="));
+        assertTrue(response.getClientExecutionDurationMs() >= 0); // hard to be accurate there and a mock...would test the mock
     }
 
     @Test
