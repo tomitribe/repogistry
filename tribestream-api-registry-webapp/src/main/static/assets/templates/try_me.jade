@@ -34,13 +34,13 @@ div(data-app)
                 div(tribe-option-picker, data-options="oauth2Options", data-change-callback="onPickerSelect(value)")
               // todo: header name!
               div
-                div(ng-click="request.oauth2.$$show = false;request.oauth2.endpoint = undefined;request.oauth2.username = undefined;").trash
+                div(ng-click="removeOAuth2();").trash
                   i.fa.fa-trash-o
                 span Token Endpoint
                 div(data-tribe-text, data-value="request.oauth2.endpoint")
               div
                 div(ng-if="request.oauth2.$$client")
-                  div(ng-click="request.oauth2.$$client = false;request.oauth2.clientId = undefined;request.oauth2.clientSecret = undefined;").trash
+                  div(ng-click="removeOAuth2Client();").trash
                     i.fa.fa-trash-o
                   div
                     span Client ID
@@ -49,7 +49,7 @@ div(data-app)
                     span Client Secret
                     i(data-tribe-password-field, value="request.oauth2.clientSecret")
                 div(ng-if="request.oauth2.$$resourceOwner")
-                  div(ng-click="request.oauth2.$$resourceOwner = false;request.oauth2.username = undefined;request.oauth2.password = undefined;").trash
+                  div(ng-click="removeOAuth2ResourceOwner();").trash
                     i.fa.fa-trash-o
                   div
                     span Username
@@ -60,21 +60,53 @@ div(data-app)
 
             div(ng-if="request.signature.$$show")
               h2 Http Signature
+              // todo: header name!
               div
-                div(ng-click="request.signature.$$client = false;request.oauth2.clientId = undefined;request.oauth2.clientSecret = undefined;").trash
+                div(ng-click="removeSignature();").trash
                   i.fa.fa-trash-o
                 div
                   div
                     span Algorithm
-                    div(data-tribe-text, data-value="request.signature.algorithm")
+                    ui-select(ng-model="request.signature.algorithm", placeholder="Signature algorithm", tagging, tagging-label="false", tagging-tokens="ENTER|,")
+                      ui-select-match(placeholder="Signature algorithm") {{$select.selected}}
+                      ui-select-choices(repeat="p in signatureAlgorithmOptions | filter: $select.search track by $index")
+                        div {{p}}
                   div
                     span Key ID
                     div(data-tribe-text, data-value="request.signature.alias")
                   div
                     span KEY
-                    div(data-tribe-text, data-value="request.signature.secret")
+                    i(data-tribe-password-field, value="request.signature.secret")
+                  // todo: headers
 
-
+            div(ng-if="request.basic.$$show")
+              h2 Basic Auth
+              div
+                div(ng-click="removeBasic();").trash
+                  i.fa.fa-trash-o
+                div
+                  div
+                    span Username
+                    div(data-tribe-text, data-value="request.basic.username")
+                  div
+                    span Password
+                    i(data-tribe-password-field, value="request.basic.password")
+            div(ng-if="request.digest.$$show")
+              h2 Payload digest
+              div
+                div(ng-click="removeDigest();").trash
+                  i.fa.fa-trash-o
+                div
+                  // todo: header name!
+                    div
+                      span Header name
+                      div(data-tribe-text, data-value="request.digest.header")
+                  div
+                    span Algorithm
+                    ui-select(ng-model="request.digest.algorithm", placeholder="Digest algorithm", tagging, tagging-label="false", tagging-tokens="ENTER|,")
+                      ui-select-match(placeholder="Digest algorithm") {{$select.selected}}
+                      ui-select-choices(repeat="p in digestOptions | filter: $select.search track by $index")
+                        div {{p}}
     div
         //
           v-pane

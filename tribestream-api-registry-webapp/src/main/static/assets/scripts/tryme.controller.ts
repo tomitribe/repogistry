@@ -1,12 +1,12 @@
 import {TryMeService} from './tryme.service';
 
 export class TryMeController {
+  static $inject = ['$scope', '$routeParams', 'tribeEndpointsService', 'tribeLinkHeaderService', 'systemMessagesService', 'TryMeService'];
   constructor(private $scope,
               private $routeParams,
               private tribeEndpointsService,
               private tribeLinkHeaderService,
               private systemMessagesService,
-              private ngDialog,
               private tryMeService: TryMeService) {
     $scope.endpoint = { httpMethod:  '', path: '', operation: {} };
     $scope.endpointUrlInfo = {
@@ -15,6 +15,13 @@ export class TryMeController {
         endpointPath: $routeParams.endpoint,
         version: $routeParams.version
     };
+
+    $scope.signatureAlgorithmOptions = [
+      'hmac-sha1', 'hmac-sha224', 'hmac-sha256', 'hmac-sha384', 'hmac-sha512',
+      'rsa-sha1', 'rsa-sha256', 'rsa-sha384', 'rsa-sha512',
+      'dsa-sha1', 'dsa-sha224', 'dsa-sha256'
+    ];
+    $scope.digestOptions = ['md2', 'md4', 'md5', 'sha-1', 'sha-224', 'sha-256', 'sha-384', 'sha-512'];
 
     $scope.onPickerSelect = value => {
       if (!!value.invoke) {
@@ -27,10 +34,29 @@ export class TryMeController {
       invoke: () => $scope.request.oauth2.$$show = true
     }, {
       displayName: 'Add HTTP Signature',
-      invoke: () => $scope.request.signature.$$show = true
+      invoke: () => {
+        $scope.request.signature = {
+          headers: ['(request-target)'],
+          algorithm: 'hmac-sha256',
+          method: $scope.request.method,
+          url: $scope.request.url,
+          requestHeaders: this.$scope.headers.reduce((accumulator, e) => {
+            accumulator[e.name] = e.value;
+            return accumulator;
+          }, {}),
+          $$show: true
+        };
+        /*
+        $request.scope.signatureHeaderOptions = this.$scope.headers.map(h => h.name);
+        $request.scope.signatureHeaderOptions.push('(request-target)');
+        */
+      }
     }, {
       displayName: 'Add Basic Auth',
       invoke: () => $scope.request.basic.$$show = true
+    }, {
+      displayName: 'Add Payload Digesting',
+      invoke: () => $scope.request.digest.$$show = true
     }, {
       // separator
     }, {
@@ -57,6 +83,37 @@ export class TryMeController {
       displayName: 'Client Credentials',
       invoke: () => $scope.request.oauth2.$$client = true
     }];
+
+    $scope.removeOAuth2Client = () => {
+      $scope.request.oauth2.$$client=false;
+      $scope.request.oauth2.clientId = undefined;
+      $scope.request.oauth2.clientSecret = undefined;
+    };
+    $scope.removeOAuth2ResourceOwner = () => {
+      $scope.request.oauth2.$$resourceOwner=false;
+      $scope.request.oauth2.username = undefined;
+      $scope.request.oauth2.password = undefined;
+    };
+    $scope.removeOAuth2 = () => {
+      $scope.request.oauth2.$$show = false;
+      $scope.request.oauth2.endpoint = undefined;
+      $scope.removeOAuth2Client();
+      $scope.removeOAuth2ResourceOwner();
+    };
+    $scope.removeSignature = () => {
+      $scope.request.signature.$$show = false;
+      $scope.request.signature.alias = undefined;
+      $scope.request.signature.secret = undefined;
+    };
+    $scope.removeBasic = () => {
+      $scope.request.basic.$$show = false;
+      $scope.request.basic.username = undefined;
+      $scope.request.basic.password = undefined;
+    };
+    $scope.removeDigest = () => {
+      $scope.request.digest.$$show = false;
+      $scope.request.digest.algorithm = undefined;
+    };
 
     tribeEndpointsService.getDetailsFromMetadata($scope.endpointUrlInfo).then(detailsResponse => {
         const detailsData = detailsResponse['data'];
@@ -185,6 +242,7 @@ export class TryMeController {
       signature: {
         header: 'Authorization',
         algorithm: 'hmac-sha256',
+        headers: ['(request-target)'],
         // ui
         $$show: false
       },
@@ -261,91 +319,6 @@ export class TryMeController {
       this.$scope.headers.push({});
     };
 
-    this.$scope.addDigest = () => {
-      let digestScope = this.$scope.$new();
-      digestScope.digest = {
-        header: 'Digest',
-        algorithm: 'sha-256'
-      };
-      digestScope.digestAlgorithmOptions = ['md2', 'md4', 'md5', 'sha-1', 'sha-224', 'sha-256', 'sha-384', 'sha-512']
-        .map(name => {
-          return {text: name, value:name};
-        });
-      this.ngDialog.open({ template: require('../templates/try_me_digest.jade'), plain: true, scope: digestScope }).closePromise.then(digest => {
-        if ('$closeButton' === digest.value) {
-          return;
-        }
-        this.$scope.request.digest = digest.value;
-      });
-    };
-
-    this.$scope.addOAuth2 = () => {
-      let oauth2Scope = this.$scope.$new();
-      oauth2Scope.oauth2 = {
-        header: 'Authorization',
-        grantType: 'password'
-      };
-      this.ngDialog.open({ template: require('../templates/try_me_oauth2.jade'), plain: true, scope: oauth2Scope }).closePromise.then(oauth2 => {
-        if ('$closeButton' === oauth2.value) {
-          return;
-        }
-        this.tryMeService.getOAuth2Header(oauth2.value, this.$scope.request.ignoreSsl)
-          .success(result => this.$scope.headers.push(result))
-          .error(err => this.systemMessagesService.error('Can\'t get the OAuth2 token with these informations'));
-      });
-    };
-
-    this.$scope.addSignature = () => {
-      let signatureScope = this.$scope.$new();
-      signatureScope.signatureAlgorithmOptions = [
-        'hmac-sha1', 'hmac-sha224', 'hmac-sha256', 'hmac-sha384', 'hmac-sha512',
-        'rsa-sha1', 'rsa-sha256', 'rsa-sha384', 'rsa-sha512',
-        'dsa-sha1', 'dsa-sha224', 'dsa-sha256'
-      ].map(name => { return {text:name, value:name}; });
-      signatureScope.signature = {
-        header: 'Authorization',
-        headers: ['(request-target)'],
-        algorithm: 'hmac-sha256',
-        method: this.$scope.request.method,
-        url: this.$scope.request.url,
-        requestHeaders: this.$scope.headers.reduce((accumulator, e) => {
-          accumulator[e.name] = e.value;
-          return accumulator;
-        }, {})
-      };
-      signatureScope.headerOptions = this.$scope.headers.map(h => h.name);
-      signatureScope.headerOptions.push('(request-target)');
-      this.ngDialog.open({ template: require('../templates/try_me_signature.jade'), plain: true, scope: signatureScope }).closePromise.then(signature => {
-        if ('$closeButton' === signature.value) {
-          return;
-        }
-        // remove if any header is null
-        signature.value.headers = signature.value.headers.filter(h => !!h);
-        this.tryMeService.getSignatureHeader(signature.value)
-          .success(result => this.$scope.headers.push(result))
-          .error(err => this.systemMessagesService.error('Can\'t get the Signature header with these informations'));
-      });
-    };
-
-    this.$scope.addBasic = () => {
-      let basicScope = this.$scope.$new();
-      basicScope.basic = {
-        header: 'Authorization'
-      };
-      this.ngDialog.open({ template: require('../templates/try_me_basic.jade'), plain: true, scope: basicScope }).closePromise.then(basic => {
-        if ('$closeButton' === basic.value) {
-          return;
-        }
-        this.tryMeService.getBasicHeader(basic.value)
-          .success(result => this.$scope.headers.push(result))
-          .error(err => this.systemMessagesService.error('Can\'t get the Basic header with these informations'));
-      });
-    };
-
-    this.$scope.addDate = () => {
-      this.$scope.headers.push({name: 'Date', value: new Date().toUTCString()});
-    };
-
     this.$scope.tryIt = () => {
       // convert headers, better than watching it which would be slow for no real reason
       this.$scope.request.headers = this.$scope.headers.filter(h => !!h.name && !!h.value).reduce((accumulator, e) => {
@@ -362,12 +335,6 @@ export class TryMeController {
           });
         })
         .error(err => this.systemMessagesService.error('Can\'t execute the request, check the information please'));
-    };
-
-    this.$scope.onResponseHeaderFiltering = pane => {
-      if (this.$scope.response.responseHeaderFilter && !pane.isExpanded()) {
-        pane.expand(pane.id);
-      }
     };
   }
 }
