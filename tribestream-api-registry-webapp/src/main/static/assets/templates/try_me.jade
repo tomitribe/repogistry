@@ -19,9 +19,7 @@ div(data-app)
             span(ng-repeat="opt in menuOptions", ng-click="onPickerSelect(opt);$dropdown.close();")
               div(ng-if="!!opt.displayName").item {{::opt.displayName}}
               div(ng-if="!opt.displayName").separator
-    div
-      div
-        article.try-me
+    article.try-me
           a(x-ng-href="endpoint/{{endpointUrlInfo.applicationName}}/{{endpointUrlInfo.verb}}/{{endpointUrlInfo.endpointPath}}?version={{endpointUrlInfo.version || ''}}")
           h2 {{endpointUrlInfo.verb}} {{endpointUrlInfo.endpointPath}} {{endpointUrlInfo.version || ''}}
 
