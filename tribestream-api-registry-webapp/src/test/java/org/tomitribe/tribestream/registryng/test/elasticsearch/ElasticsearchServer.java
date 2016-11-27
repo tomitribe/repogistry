@@ -20,6 +20,8 @@ package org.tomitribe.tribestream.registryng.test.elasticsearch;
 
 import org.jboss.shrinkwrap.resolver.api.maven.ConfigurableMavenResolverSystem;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileWriter;
@@ -43,7 +45,10 @@ import static java.lang.Thread.sleep;
 import static java.util.Arrays.asList;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
+import static javax.ws.rs.client.Entity.entity;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static org.jboss.shrinkwrap.resolver.api.maven.Maven.configureResolver;
+import static org.junit.Assert.assertTrue;
 
 public class ElasticsearchServer implements Closeable {
     private static final int POLLING_TIMEOUT = 500;
@@ -208,5 +213,14 @@ public class ElasticsearchServer implements Closeable {
         cmd.add("org.elasticsearch.bootstrap.Elasticsearch");
         cmd.add("start");
         return cmd.toArray(new String[cmd.size()]);
+    }
+
+    public void refresh() {
+        final Client client = ClientBuilder.newClient();
+        try {
+            assertTrue(client.target("http://localhost:" + getPort() + "/_refresh").request().post(entity("{}", APPLICATION_JSON_TYPE)).getStatus() < 300);
+        } finally {
+            client.close();
+        }
     }
 }

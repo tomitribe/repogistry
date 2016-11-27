@@ -18,7 +18,7 @@
  */
 package org.tomitribe.tribestream.registryng.test.elasticsearch;
 
-import org.apache.tomee.embedded.junit.TomEEEmbeddedSingleRunner;
+import org.apache.tomee.embedded.LifecycleTask;
 
 import java.io.Closeable;
 
@@ -26,7 +26,7 @@ import static java.lang.System.getProperty;
 import static java.lang.System.setProperty;
 import static java.util.Optional.ofNullable;
 
-public class Elasticsearch implements TomEEEmbeddedSingleRunner.LifecycleTask {
+public class Elasticsearch implements LifecycleTask {
     private ElasticsearchServer elasticsearch;
 
     @Override
@@ -35,5 +35,9 @@ public class Elasticsearch implements TomEEEmbeddedSingleRunner.LifecycleTask {
                 .start();
         setProperty("test.elasticsearch.port", Integer.toString(elasticsearch.getPort()));
         return () -> ofNullable(elasticsearch).ifPresent(ElasticsearchServer::close);
+    }
+
+    public void refresh() {
+        elasticsearch.refresh();
     }
 }
