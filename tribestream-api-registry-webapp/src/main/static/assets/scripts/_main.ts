@@ -18,8 +18,11 @@ import './auth.ts';
 import './endpoints.ts';
 import './endpoints_details.ts';
 import './tryme.module.ts';
+import './tryme.module.ts';
+import './widget/password/widget.password.module.ts';
+import './widget/option-picker/widget.option-picker.module.ts';
 
-require("../styles/app.sass");
+import '../styles/app.sass';
 
 module tribe_main {
 

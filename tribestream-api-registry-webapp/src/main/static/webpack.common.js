@@ -45,7 +45,7 @@ module.exports = {
                 loaders: ['awesome-typescript-loader']
             },
             {
-                test: /\.jade$/,
+                test: /\.(jade|pug)$/,
                 loader: 'pug-html-loader'
             },
             {

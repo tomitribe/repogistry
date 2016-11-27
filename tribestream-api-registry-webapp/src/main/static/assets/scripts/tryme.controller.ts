@@ -15,6 +15,49 @@ export class TryMeController {
         endpointPath: $routeParams.endpoint,
         version: $routeParams.version
     };
+
+    $scope.onPickerSelect = value => {
+      if (!!value.invoke) {
+        value.invoke();
+      }
+    };
+
+    $scope.menuOptions = [{
+      displayName: 'Add OAuth 2.0',
+      invoke: () => $scope.request.oauth2.$$show = true
+    }, {
+      displayName: 'Add HTTP Signature',
+      invoke: () => $scope.request.signature.$$show = true
+    }, {
+      displayName: 'Add Basic Auth',
+      invoke: () => $scope.request.basic.$$show = true
+    }, {
+      // separator
+    }, {
+      displayName: 'Save As',
+      invoke: () => {
+        alert('TODO: not yet done');
+      }
+    }, {
+      displayName: 'Save result',
+      invoke: () => {
+        alert('TODO: not yet done');
+      }
+    }, {
+      displayName: 'Update Samples',
+      invoke: () => {
+        alert('TODO: not yet done');
+      }
+    }];
+
+    $scope.oauth2Options = [{
+      displayName: 'Resource Owner',
+      invoke: () => $scope.request.oauth2.$$resourceOwner = true
+    }, {
+      displayName: 'Client Credentials',
+      invoke: () => $scope.request.oauth2.$$client = true
+    }];
+
     tribeEndpointsService.getDetailsFromMetadata($scope.endpointUrlInfo).then(detailsResponse => {
         const detailsData = detailsResponse['data'];
         $scope.endpoint = {
@@ -131,8 +174,29 @@ export class TryMeController {
       method: this.$scope.endpoint.httpMethod.toUpperCase(),
       url: url + querySample,
       payload: payload,
+      oauth2: {
+        header: 'Authorization',
+        grantType: 'password',
+        // for the ui
+        $$show: false,
+        $$resourceOwner: false,
+        $$client: false
+      },
+      signature: {
+        header: 'Authorization',
+        algorithm: 'hmac-sha256',
+        // ui
+        $$show: false
+      },
+      basic: {
+        header: 'Authorization',
+        // ui
+        $$show: false
+      },
       digest: {
-        header: 'Digest'
+        header: 'Digest',
+        // ui
+        $$show: false
       }
     };
 

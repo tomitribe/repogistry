@@ -1,0 +1,8 @@
+div
+  .add-btn
+    div
+      i.fa.fa-plus
+    .list
+      ul
+        li(ng-repeat="option in options", ng-click="onClick(option)")
+          span {{option.displayName}}

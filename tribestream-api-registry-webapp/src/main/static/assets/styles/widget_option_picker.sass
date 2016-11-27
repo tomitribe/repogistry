@@ -1,0 +1,63 @@
+@import "./variables"
+
+div[tribe-option-picker]
+  $default-selection: #d6d6d6
+  display: inline-block
+  background-color: $app-button-grey
+  border: 1px solid $app-button-grey
+  padding: 2px 3px
+  line-height: 10px
+  vertical-align: top
+  margin-top: 3px
+  margin-left: 10px
+  cursor: pointer
+  .add-btn
+    position: relative
+    > div
+      font-size: 0px
+      i
+        color: $app-white
+        font-size: 10px
+        line-height: 10px
+    .list
+      display: none
+      border-radius: 2px
+      position: absolute
+      left: -5px
+      top: 16px
+      border: 1px solid $app-input-border-color
+      z-index: 3000
+      transform: translate(0, -1px)
+      background-color: $app-white
+      margin: 0
+      padding: 6px
+      box-shadow: 0px 1px 4px rgba(0,0,0,0.2)
+      min-width: 180px
+      &.visible
+        display: block
+      ul, li
+        margin: 0
+        list-style: none
+      li
+        padding: 5px 7px
+        line-height: 1.7
+        font-size: 12px
+        text-decoration: none
+        font-weight: normal
+        text-transform: none
+        font-family: $app-font-body
+        span
+          font-family: $app-font-body
+        &:hover
+          background-color: $tomitribe-orange
+          span
+            color: $app-white
+    div
+      li.selected
+        background-color: $default-selection
+  &:hover
+    background-color: $app-white
+    border: 1px solid $tomitribe-orange
+    .add-btn
+      i
+        color: $app-black

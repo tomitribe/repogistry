@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
@@ -151,6 +152,7 @@ public class ClientResource {
                 e.getId(),
                 new HttpRequest(
                         request.isIgnoreSsl(), request.getMethod(), request.getUrl(), request.getHeaders(),
+                        null, null, null,
                         ofNullable(request.getHeaders()).orElse(emptyMap()).entrySet().stream()  // we guess it there but enough
                                 .filter(h -> h.getKey().toLowerCase(Locale.ENGLISH).equals("Digest"))
                                 .findFirst()
@@ -169,13 +171,57 @@ public class ClientResource {
         req.setIgnoreSsl(request.isIgnoreSsl());
         req.setHeaders(new HashMap<>(ofNullable(request.getHeaders()).orElse(emptyMap())));
 
+        ofNullable(request.getOauth2())
+                .filter(o -> o.getEndpoint() != null && (o.getUsername() != null || o.getRefreshToken() != null))
+                .ifPresent(o -> {
+                    if (req.getHeaders().put(
+                            ofNullable(o.getHeader()).orElse("Authorization"),
+                            service.oauth2Header(
+                                    ofNullable(o.getGrantType()).orElse("password"),
+                                    o.getUsername(),
+                                    o.getPassword(),
+                                    o.getRefreshToken(),
+                                    o.getClientId(),
+                                    o.getClientSecret(),
+                                    o.getEndpoint(),
+                                    request.isIgnoreSsl())) != null) {
+                        throw new IllegalArgumentException("You already have a " + o.getHeader() + " header, oauth2 would overwrite it, please fix the request");
+                    }
+                });
+        ofNullable(request.getBasic())
+                .filter(o -> o.getUsername() != null)
+                .ifPresent(o -> {
+                    if (req.getHeaders().put(
+                            ofNullable(o.getHeader()).orElse("Authorization"),
+                            service.basicHeader(
+                                    o.getUsername(),
+                                    o.getPassword())) != null) {
+                        throw new IllegalArgumentException("You already have a " + o.getHeader() + " header, basic would overwrite it, please fix the request");
+                    }
+                });
         ofNullable(request.getDigest())
                 .filter(o -> o.getAlgorithm() != null)
                 .ifPresent(o -> {
                     if (req.getHeaders().put(
                             ofNullable(o.getHeader()).orElse("Digest"),
                             service.digestHeader(ofNullable(request.getPayload()).orElse(""), o.getAlgorithm())) != null) {
-                        throw new IllegalArgumentException("You already have a " + o.getHeader() + " header, oauth2 would overwrite it, please fix the request");
+                        throw new IllegalArgumentException("You already have a " + o.getHeader() + " header, digest would overwrite it, please fix the request");
+                    }
+                });
+        ofNullable(request.getSignature())
+                .filter(o -> o.getSecret() != null)
+                .ifPresent(o -> {
+                    if (req.getHeaders().put(
+                            ofNullable(o.getHeader()).orElse("Authorization"),
+                            service.httpSign(
+                                    ofNullable(o.getHeaders()).orElse(emptyList()),
+                                    ofNullable(o.getMethod()).filter(u -> u != null && !u.isEmpty()).orElse(request.getMethod()),
+                                    ofNullable(o.getUrl()).filter(u -> u != null && !u.isEmpty()).orElse(request.getUrl()),
+                                    o.getAlias(),
+                                    o.getSecret(),
+                                    ofNullable(o.getAlgorithm()).orElse("hmac-sha256"),
+                                    ofNullable(o.getRequestHeaders()).filter(h -> h != null && !h.isEmpty()).orElseGet(req::getHeaders))) != null) {
+                        throw new IllegalArgumentException("You already have a " + o.getHeader() + " header, signature would overwrite it, please fix the request");
                     }
                 });
         return req;
@@ -236,6 +282,9 @@ public class ClientResource {
         private String method;
         private String url;
         private Map<String, String> headers;
+        private OAuth2Header oauth2;
+        private HttpSignatureHeader signature;
+        private BasicHeader basic;
         private DigestHeader digest;
         private String payload;
     }

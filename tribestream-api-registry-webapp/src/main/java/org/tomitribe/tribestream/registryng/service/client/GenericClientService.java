@@ -50,6 +50,8 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.MessageDigest;
@@ -159,6 +161,19 @@ public class GenericClientService {
                            final String secret,
                            final String algorithm,
                            final Map<String, String> requestHeaders) {
+        final String uri;
+        if (path.startsWith("https://") || path.startsWith("http://")) {
+            final URL url;
+            try {
+                url = new URL(path);
+            } catch (final MalformedURLException e) {
+                throw new IllegalArgumentException(e);
+            }
+            uri = url.getPath() + ofNullable(url.getQuery()).filter(q -> q != null && !q.isEmpty()).map(q -> '?' + q).orElse("");
+        } else {
+            uri = path;
+        }
+
         try {
             final Signer signer = new Signer(
                     new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), algorithm),
@@ -183,7 +198,7 @@ public class GenericClientService {
                 }
             });
 
-            return signer.sign(method, path, requestHeaders).toString();
+            return signer.sign(method, uri, requestHeaders).toString();
         } catch (final IOException ioe) {
             throw new IllegalStateException(ioe);
         }
