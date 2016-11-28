@@ -81,7 +81,6 @@ div(data-app)
                   div
                     span KEY
                     i(data-tribe-password-field, value="request.signature.secret")
-                  // todo: headers
 
             div(ng-if="request.basic.$$show")
               h2 Basic Auth
@@ -200,7 +199,7 @@ div(data-app)
                           ui-select-match(placeholder="Query parameter value") {{$select.selected}}
                           ui-select-choices(repeat="p in [param.value] | filter:$select.search track by $index")
                             div {{p}}
-                      th(ng-if="request.signature.$$show") 
+                      th(ng-if="request.signature.$$show")
                       td
                         div
                           i.fa.fa-trash-o(ng-click="removeQueryParameter(h);")
