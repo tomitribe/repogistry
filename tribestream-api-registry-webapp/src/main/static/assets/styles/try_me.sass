@@ -72,6 +72,8 @@ div.page-header
       position: relative
       bottom: -29px
       right: 50px
+      .fab .fab-actions-down
+        z-index: 2
     div.header-menu
       align-self: flex-end
       display: flex
@@ -79,6 +81,7 @@ div.page-header
         div.dropdown-list
           font-family: $app-font-body
           font-size: 13px
+          z-index: 0
           .item
             color: $app-text-gray
             padding: 5px 10px
@@ -100,6 +103,7 @@ article.try-me
         font-size: 13px
         color: $tomitribe-orange
         font-family: $app-font-body
+        border-radius: 3px
       [data-tribe-singleselect-selected] > div div.edit-icon
         color: $app-icon-gray
         font-size: 11px
@@ -109,13 +113,19 @@ article.try-me
       padding-bottom: 20px
       border-bottom: dotted $app-border-grey 2px
       margin-bottom: 29px
+      display: inline-block
+      width: 100%
       div
         div.flexbin
           display: flex
           h2
             flex: 1
+            div[tribe-option-picker]
+              padding: 1px 3px 0 3px
+              line-height: 5px
         div
           div.trash
+            float: right
             i
             align-self: flex-end
             color: $app-white
@@ -126,21 +136,48 @@ article.try-me
             margin-top: 5px
             &:hover
               background-color: $app-black
+        div.oauth2add
+          width: 50%
+          float: left
+          div.trash
+            display: none
+          div.quarter
+            width: 46%
+            float: left
+            padding-right: 20px
+        div
+          div.quarter
+            width: 25%
+            float: left
+            padding-right: 20px
         h3
           font-size: 13px
           color: $app-black
           font-family: $app-font-title
           font-weight: $app-font-weight-h3
           text-transform: uppercase
-          margin-top: 20px
+          margin: 20px 0 0 0
+          padding-bottom: 16px
         [data-tribe-text]
           font-family: $app-font-body
           font-size: 13px
           font-style: normal
+          width: 100%
+          max-width: 400px
+          &:focus
+            border: 1px $tomitribe-orange solid
+          div.text
+            padding: 0 5px
           div.edit-icon
-            color: $app-button-grey
+            color: $app-icon-gray
             background-color: $app-white
             border-left: 0
+            font-size: 11px
+          div
+            [data-tribe-field-actions]
+              float: right
+              margin-right: 50px
+
   div.parameters
     h2
       font-size: $app-font-size-h2
@@ -148,6 +185,73 @@ article.try-me
       font-family: $app-font-title
       font-weight: $app-font-weight-h2
       text-transform: uppercase
+      flex: 1
+      .dropdown
+        $default-selection: #d6d6d6
+        display: inline-block
+        background-color: $app-button-grey
+        border: 1px solid $app-button-grey
+        padding: 2px 3px
+        line-height: 5px
+        vertical-align: top
+        margin-top: 3px
+        margin-left: 10px
+        cursor: pointer
+        width: 15px
+        &:hover
+          background-color: $app-white
+          border: 1px solid $tomitribe-orange
+          .dropdown-primary
+            i
+              color: $app-black
+        .dropdown-primary
+          position: relative
+          height: 0
+          width: 0
+          i
+            color: $app-white
+            font-size: 10px
+            line-height: 10px
+      .dropdown-list
+        div.item
+          font-family: $app-font-body
+          font-weight: $app-font-weight-h5
+          font-size: 13px
+          text-transform: capitalize
+          color: #6e6e6e
+          padding: 5px 10px
+          line-height: 1.7em
+          &:hover
+            color: $app-white
+    div
+      div
+        table
+          width: 100%
+          thead
+            background-color: #F9F9F9
+            //display: flex
+            border-top: 1px solid #EEEEEE
+            border-bottom: 1px solid #EEEEEE
+            //justify-content: space-between
+            //align-items: center
+            tr
+              th
+                font-size: 13px
+                color: $app-black
+                font-family: $app-font-title
+                font-weight: $app-font-weight-h3
+                text-transform: uppercase
+                padding: 14px 0 12px 0
+                text-align: left
+          tbody
+            tr
+              border-bottom: 1px solid #EEEEEE
+              td
+                font-family: $app-font-body
+                font-size: 13px
+                color: $app-text-gray
+                padding: 12px 0
+
 
 div.tribe-data-tribe-singleselect-available-body
   z-index: 14000

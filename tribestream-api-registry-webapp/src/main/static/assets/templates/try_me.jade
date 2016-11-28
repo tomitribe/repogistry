@@ -1,4 +1,4 @@
-div(data-app)
+div.try-me(data-app)
   div
     .header-try-me
       .breadcrumb
@@ -50,78 +50,85 @@ div(data-app)
                 h3 Token Endpoint
                 div(data-tribe-text, data-value="request.oauth2.endpoint", data-placeholder="Click to enter")
               div
-                div(ng-if="request.oauth2.$$client")
+                div.oauth2add(ng-if="request.oauth2.$$client")
                   div(ng-click="removeOAuth2Client();").trash
                     i.fa.fa-trash-o
-                  div
-                    span Client ID
+                  div.quarter
+                    h3 Client ID
                     div(data-tribe-text, data-value="request.oauth2.clientId")
-                  div
-                    span Client Secret
+                  div.quarter
+                    h3 Client Secret
                     i(data-tribe-password-field, value="request.oauth2.clientSecret")
-                div(ng-if="request.oauth2.$$resourceOwner")
+                div.oauth2add(ng-if="request.oauth2.$$resourceOwner")
                   div(ng-click="removeOAuth2ResourceOwner();").trash
                     i.fa.fa-trash-o
-                  div
-                    span Username
+                  div.quarter
+                    h3 Username
                     div(data-tribe-text, data-value="request.oauth2.username")
-                  div
-                    span Password
+                  div.quarter
+                    h3 Password
                     i(data-tribe-password-field, value="request.oauth2.password")
 
             div.form-line(ng-if="request.signature.$$show")
-              h2 Http Signature
-              // todo: header name!
               div
-                div(ng-click="removeSignature();").trash
-                  i.fa.fa-trash-o
-                div
+                div.flexbin
+                  h2 Http Signature
+                    // todo: header name!
                   div
-                    span Algorithm
+                    div(ng-click="removeSignature();").trash
+                      i.fa.fa-trash-o
+                div
+                  div.quarter
+                    h3 Algorithm
                     ui-select(ng-model="request.signature.algorithm", placeholder="Signature algorithm", tagging, tagging-label="false", tagging-tokens="ENTER|,")
                       ui-select-match(placeholder="Signature algorithm") {{$select.selected}}
                       ui-select-choices(repeat="p in signatureAlgorithmOptions | filter: $select.search track by $index")
                         div {{p}}
-                  div
-                    span Key ID
+                  div.quarter
+                    h3 Key ID
                     div(data-tribe-text, data-value="request.signature.alias")
-                  div
-                    span KEY
+                  div.quarter
+                    h3 KEY
                     i(data-tribe-password-field, value="request.signature.secret")
 
             div.form-line(ng-if="request.basic.$$show")
-              h2 Basic Auth
               div
-                div(ng-click="removeBasic();").trash
-                  i.fa.fa-trash-o
+                div.flexbin
+                  h2 Basic Auth
+                  div
+                    div(ng-click="removeBasic();").trash
+                      i.fa.fa-trash-o
                 div
-                  div
-                    span Username
+                  div.quarter
+                    h3 Username
                     div(data-tribe-text, data-value="request.basic.username")
-                  div
-                    span Password
+                  div.quarter
+                    h3 Password
                     i(data-tribe-password-field, value="request.basic.password")
+
             div.form-line(ng-if="request.digest.$$show")
-              h2 Payload digest
               div
-                div(ng-click="removeDigest();").trash
-                  i.fa.fa-trash-o
+                div.flexbin
+                  h2 Payload digest
+                  div
+                    div(ng-click="removeDigest();").trash
+                      i.fa.fa-trash-o
                 div
                   // todo: header name!
-                    div
-                      span Header name
-                      div(data-tribe-text, data-value="request.digest.header")
-                  div
-                    span Algorithm
+                  div.quarter
+                    h3 Header name
+                    div(data-tribe-text, data-value="request.digest.header")
+                  div.quarter
+                    h3 Algorithm
                     ui-select(ng-model="request.digest.algorithm", placeholder="Digest algorithm", tagging, tagging-label="false", tagging-tokens="ENTER|,")
                       ui-select-match(placeholder="Digest algorithm") {{$select.selected}}
                       ui-select-choices(repeat="p in digestOptions | filter: $select.search track by $index")
                         div {{p}}
           div.parameters
             h2 Parameters
-            tribe-dropdown(dropdown-direction='down', pull-direction='right', dropdown-trigger='dropdownClick', auto-close="true")
+              tribe-dropdown(dropdown-direction='down', pull-direction='right', dropdown-trigger='dropdownClick', auto-close="true")
                 tribe-dropdown-trigger
-                  i.bimg(style="font-size: 25px;")
+                  i.fa.fa-plus
                 tribe-dropdown-list
                   span(ng-repeat="opt in parametersOptions", ng-click="onPickerSelect(opt);$dropdown.close();")
                     div(ng-if="!!opt.displayName").item {{::opt.displayName}}
@@ -131,13 +138,13 @@ div(data-app)
                 table
                   thead
                     tr
-                      th name
+                      th(style="padding-left: 6px") name
                       th type
                       th placement
                       th required
                       th.description description
                       th values
-                      th(ng-if="request.signature.$$show") Sign
+                      th(ng-if="request.signature.$$show") h3 Sign
                       th
                   tbody
                     tr(ng-repeat="h in headers | orderBy:'h.name' track by $index")
