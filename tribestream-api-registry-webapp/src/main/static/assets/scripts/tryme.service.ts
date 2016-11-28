@@ -1,9 +1,10 @@
 export class TryMeService {
+  static $inject = ['$http'];
   constructor(private $http) {
   }
 
   request(request) {
-    return this.$http.post('api/try', request);
+    return this.$http.post('api/try/invoke', request);
   }
 
   getOAuth2Header(request, ignoreSsl) {

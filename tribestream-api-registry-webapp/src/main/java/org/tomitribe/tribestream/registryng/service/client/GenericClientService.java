@@ -123,6 +123,7 @@ public class GenericClientService {
                                final String clientId,
                                final String clientSecret,
                                final String endpoint,
+                               final String tokenType,
                                final boolean ignoreSsl) {
         final Client client = newClient(ignoreSsl && endpoint != null && endpoint.startsWith("https"));
         try {
@@ -148,7 +149,7 @@ public class GenericClientService {
                     .target(ofNullable(endpoint).orElse(oauth2Endpoint))
                     .request(MediaType.APPLICATION_JSON_TYPE)
                     .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE), Token.class);
-            return token.getToken_type() + " " + token.getAccess_token();
+            return ofNullable(tokenType).orElse(ofNullable(token.getToken_type()).map(h -> "empty".equals(h) ? "" : h).orElse("")) + " " + token.getAccess_token();
         } finally {
             client.close();
         }
