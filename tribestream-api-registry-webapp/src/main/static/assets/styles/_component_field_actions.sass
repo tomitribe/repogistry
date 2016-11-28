@@ -2,12 +2,15 @@
 
 div.tribe-field-actions-body
   display: flex
-  border: solid #cccccc 1px
-  background-color: #f0f0f0
+  border: solid $app-border-grey 1px
+  background-color: $app-white
   z-index: 2000
+  border-top: solid $tomitribe-orange 1px
+  box-shadow: none
+  margin-top: 1px
   > div
     margin: 3px
-    $size: 22px
+    $size: 17px
     width: $size
     height: $size
     display: flex
@@ -17,13 +20,16 @@ div.tribe-field-actions-body
     border: solid #cbcbcb 1px
     $bg-color: #f5f5f5
     background-color: $bg-color
+    font-size: 11px
     i
-      color: #777
+      color: $app-icon-gray
     &:hover
-      background-color: darken($bg-color, 10)
+      color: $app-white
+      background-color: $app-black
       cursor: pointer
       i
         color: inherit
+      &:first-of-type
+        background-color: $tomitribe-green
     &.disabled
       display: none
-
