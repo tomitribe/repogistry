@@ -38,17 +38,48 @@ div(data-app)
             div.form-line
               h2 Request
               div(data-tribe-singleselect, data-editable="true", data-selected-option="request.url", data-placeholder="URL to request")
+            div.form-line(ng-if="request.scenario.$$show")
+              div
+                div.flexbin
+                  h2 Execution Scenario
+              div
+                div(ng-click="removeScenario();").trash
+                  i.fa.fa-trash-o
+                div
+                  div
+                    span Threads
+                    input(type="number", ng-model="request.scenario.threads")
+                  div
+                    span Execution Type
+                    div(data-tribe-singleselect, data-selected-option="request.scenario.$$useDuration",
+                        data-available-options="[{text:'Iterations', value:false}, {text:'Duration', value:true}]")
+                  div(ng-if="!request.scenario.$$useDuration")
+                    span Iterations
+                    input(type="number", ng-model="request.scenario.invocations")
+                  div(ng-if="!!request.scenario.$$useDuration")
+                    span Duration
+                    input(type="number", ng-model="request.scenario.$$durationTime")
+                    div(data-tribe-singleselect, data-selected-option="request.scenario.$$durationUnit",
+                        data-available-options="[{text:'Minutes', value:'minutes'}, {text:'Seconds', value:'seconds'}]")
             div.form-line(ng-if="request.oauth2.$$show")
               div
                 div.flexbin
                   h2 OAuth 2
                     div(tribe-option-picker, data-options="oauth2Options", data-change-callback="onPickerSelect(value)")
-                    // todo: header name!
                   div
                     div(ng-click="removeOAuth2();").trash
                       i.fa.fa-trash-o
                 h3 Token Endpoint
                 div(data-tribe-text, data-value="request.oauth2.endpoint", data-placeholder="Click to enter")
+              div
+                div
+                  span Header name
+                  div(data-tribe-text, data-value="request.oauth2.header")
+                div(ng-if="!!request.oauth2.$$tokenType")
+                  div(ng-click="removeOAuth2TokenType();").trash
+                    i.fa.fa-trash-o
+                  span Token Type
+                  div(data-tribe-text, data-value="request.oauth2.tokenType")
               div
                 div(ng-if="request.oauth2.$$client")
                   div(ng-click="removeOAuth2Client();").trash
@@ -71,11 +102,13 @@ div(data-app)
 
             div.form-line(ng-if="request.signature.$$show")
               h2 Http Signature
-              // todo: header name!
               div
                 div(ng-click="removeSignature();").trash
                   i.fa.fa-trash-o
                 div
+                  div
+                    span Header name
+                    div(data-tribe-text, data-value="request.signature.header")
                   div
                     span Algorithm
                     ui-select(ng-model="request.signature.algorithm", placeholder="Signature algorithm", tagging, tagging-label="false", tagging-tokens="ENTER|,")
@@ -88,6 +121,9 @@ div(data-app)
                   div
                     span KEY
                     i(data-tribe-password-field, value="request.signature.secret")
+                  div
+                    span Request Target
+                    i(data-tribe-checkbox, data-value="request.signature.$$requestTarget")
 
             div.form-line(ng-if="request.basic.$$show")
               h2 Basic Auth
@@ -95,6 +131,9 @@ div(data-app)
                 div(ng-click="removeBasic();").trash
                   i.fa.fa-trash-o
                 div
+                  div
+                    span Header name
+                    div(data-tribe-text, data-value="request.basic.header")
                   div
                     span Username
                     div(data-tribe-text, data-value="request.basic.username")
@@ -107,10 +146,9 @@ div(data-app)
                 div(ng-click="removeDigest();").trash
                   i.fa.fa-trash-o
                 div
-                  // todo: header name!
-                    div
-                      span Header name
-                      div(data-tribe-text, data-value="request.digest.header")
+                  div
+                    span Header name
+                    div(data-tribe-text, data-value="request.digest.header")
                   div
                     span Algorithm
                     ui-select(ng-model="request.digest.algorithm", placeholder="Digest algorithm", tagging, tagging-label="false", tagging-tokens="ENTER|,")
@@ -236,3 +274,48 @@ div(data-app)
               ui-codemirror(ng-model="response.payload", ui-codemirror-opts="payloadOptions")
             div(ng-if="response.status <= 0")
               ui-codemirror(ng-model="response.error", ui-codemirror-opts="payloadOptions")
+          div(ng-if="responseStream")
+            div(ng-if="!!responseStream.stats")
+              div
+                h2 Aggregated Report
+                table
+                  thead
+                    tr
+                      th Total Duration (ms)
+                      th Invocation count
+                      th Min duration
+                      th Max duration
+                      th Avg duration
+                  tbody
+                    tr
+                      td {{responseStream.stats.duration}}
+                      td {{responseStream.stats.total}}
+                      td {{responseStream.stats.min}}
+                      td {{responseStream.stats.max}}
+                      td {{responseStream.stats.average}}
+            div(ng-if="!!responseStream.stats")
+              div
+                h2 Statistic per status
+                table
+                  thead
+                    tr
+                      th HTTP Status
+                      th Invocation count
+                  tbody
+                    tr(ng-repeat="i in responseStream.stats.$$countPerStatusArray | orderBy:'i.status' track by $index")
+                      td {{i.status}}
+                      td {{i.count}}
+            div(ng-if="!!responseStream.items")
+              div(ng-if="!responseStream.finished")
+                i(data-tribe-checkbox, data-value="responseStream.$$scrollOnOutput") Automatic scrolling
+              div
+                h2 Responses Summary
+                table
+                  thead
+                    tr
+                      th HTTP Status
+                      th Client Duration (ms)
+                  tbody
+                    tr(ng-repeat="h in responseStream.items track by $index")
+                      td {{h.status}}
+                      td {{h.clientExecutionDurationMs}}

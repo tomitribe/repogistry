@@ -1,13 +1,16 @@
 import {TryMeService} from './tryme.service';
 
 export class TryMeController {
-  static $inject = ['$scope', '$routeParams', 'tribeEndpointsService', 'tribeLinkHeaderService', 'systemMessagesService', 'TryMeService'];
+  static $inject = ['$scope', '$routeParams', '$window', '$timeout', 'tribeEndpointsService', 'tribeLinkHeaderService', 'systemMessagesService', 'TryMeService' ,'currentAuthProvider'];
   constructor(private $scope,
               private $routeParams,
+              private $window,
+              private $timeout,
               private tribeEndpointsService,
               private tribeLinkHeaderService,
               private systemMessagesService,
-              private tryMeService: TryMeService) {
+              private tryMeService: TryMeService,
+              private currentAuthProvider) {
     $scope.endpoint = { httpMethod:  '', path: '', operation: {} };
     $scope.endpointUrlInfo = {
         applicationName: $routeParams.application,
@@ -61,18 +64,73 @@ export class TryMeController {
         accumulator[e.name] = e.value;
         return accumulator;
       }, {});
-      $scope.request.signature.headers = $scope.headers.filter(h => !!h.$$useForSignature && !!h.name).map(h => h.name);
 
-      tryMeService.request($scope.request)
-        .success(result => {
-          $scope.response = result;
-          $scope.response.payloadOptions = $scope.payloadOptions;
-          $scope.response.statusDescription = this.statusDescription(result.status);
-          $scope.response.headers = Object.keys($scope.response.headers).map(key => {
-             return {name: key, value: $scope.response.headers[key]};
-          });
-        })
-        .error(err => systemMessagesService.error('Can\'t execute the request, check the information please'));
+      $scope.request.signature.headers = $scope.headers.filter(h => !!h.$$useForSignature && !!h.name).map(h => h.name);
+      if (!!$scope.request.signature.$$requestTarget && $scope.request.signature.headers.indexOf('(request-target)') < 0) {
+        $scope.request.signature.headers.push('(request-target)');
+      }
+
+      // cleanup scenario model to enable duration case (GUI can have messed it up) and potentially convert duration to a parseable value
+      if (!!$scope.request.scenario.$$useDuration) {
+        $scope.request.scenario.invocations = -1;
+        $scope.request.scenario.duration = ($scope.request.scenario.$$durationTime || '1') + ' ' + ($scope.request.scenario.$$durationUnit || 'seconds');
+      } else {
+        $scope.request.scenario.duration = undefined;
+      }
+
+      // reset response for new invocation
+      $scope.response = undefined;
+      $scope.responseStream = undefined;
+
+      // check it is a scenario or a simple call
+      if ($scope.request.scenario && ($scope.request.scenario.threads > 1 || !!$scope.request.scenario.duration || $scope.request.scenario.invocations > 1)) {
+        if(!window['EventSource']) {
+          systemMessagesService.error('No Server Send Event support, use a browser support it please.');
+          return;
+        }
+        $scope.responseStream = $scope.responseStream || {items:[], $$scrollOnOutput: true};
+
+        currentAuthProvider.get().getAuthorizationHeader().then(header => {
+          let source = new window['EventSource']('api/try/invoke/stream?request=' + window['Base64'].encodeURI(angular.toJson({http:$scope.request, identity:header})));
+          const onDone = () => {
+            source.close();
+            $scope.responseStream.finished = true;
+          };
+          source.onerror = error => {
+            onDone();
+            $scope.$apply(() => systemMessagesService.error(JSON.stringify(error)));
+          };
+          source.onmessage = event => {
+              $scope.$apply(() => {
+                const object = JSON.parse(event.data);
+                if (!!object.total) { // done, we don't use "event" to define the type cause of the number of messages we can get
+                  $scope.responseStream.stats = object;
+                  $scope.responseStream.stats.$$countPerStatusArray = Object.keys(object.countPerStatus || {})
+                    .map(k => {
+                      return {status: k, count: object.countPerStatus[k]};
+                    });
+                  onDone();
+                } else {
+                  $scope.responseStream.items.push(object);
+                  if ($scope.responseStream.$$scrollOnOutput) {
+                    $timeout(() => $window.scrollTo(0, $window.innerHeight));
+                  }
+                }
+              });
+          };
+        });
+      } else {
+        tryMeService.request($scope.request)
+          .success(result => {
+            $scope.response = result;
+            $scope.response.payloadOptions = $scope.payloadOptions;
+            $scope.response.statusDescription = this.statusDescription(result.status);
+            $scope.response.headers = Object.keys($scope.response.headers).map(key => {
+               return {name: key, value: $scope.response.headers[key]};
+            });
+          })
+          .error(err => systemMessagesService.error('Can\'t execute the request, check the information please'));
+      }
     };
 
     $scope.mainMenuOptions = [{
@@ -100,14 +158,11 @@ export class TryMeController {
       displayName: 'Add HTTP Signature',
       invoke: () => {
         $scope.request.signature = {
+          header: 'Authorization',
           headers: ['(request-target)'],
           algorithm: 'hmac-sha256',
           $$show: true
         };
-        /*
-        $request.scope.signatureHeaderOptions = this.$scope.headers.map(h => h.name);
-        $request.scope.signatureHeaderOptions.push('(request-target)');
-        */
       }
     }, {
       displayName: 'Add Basic Auth',
@@ -115,6 +170,9 @@ export class TryMeController {
     }, {
       displayName: 'Add Payload Digesting',
       invoke: () => $scope.request.digest.$$show = true
+    }, {
+      displayName: 'Add Scenario Configuration',
+      invoke: () => $scope.request.scenario.$$show = true
     }, {
       // separator
     }, {
@@ -139,6 +197,12 @@ export class TryMeController {
     }, {
       displayName: 'Client Credentials',
       invoke: () => $scope.request.oauth2.$$client = true
+    }, {
+      displayName: 'Force Token Type',
+      invoke: () => {
+        $scope.request.oauth2.$$tokenType = true;
+        $scope.request.oauth2.tokenType = 'Bearer';
+      }
     }];
     $scope.parametersOptions = [{
       displayName: 'Add Header',
@@ -161,6 +225,10 @@ export class TryMeController {
       $scope.request.oauth2.username = undefined;
       $scope.request.oauth2.password = undefined;
     };
+    $scope.removeOAuth2TokenType = () => {
+      $scope.request.oauth2.$$tokenType = false;
+      $scope.request.oauth2.tokenType = undefined;
+    };
     $scope.removeOAuth2 = () => {
       $scope.request.oauth2.$$show = false;
       $scope.request.oauth2.endpoint = undefined;
@@ -180,6 +248,14 @@ export class TryMeController {
     $scope.removeDigest = () => {
       $scope.request.digest.$$show = false;
       $scope.request.digest.algorithm = undefined;
+    };
+    $scope.removeScenario = () => {
+      $scope.request.scenario.$$show = false;
+      $scope.request.scenario.$$useDuration = false;
+      // should we reset the values?
+      $scope.request.scenario.threads = 1;
+      $scope.request.scenario.iterations = 1;
+      $scope.request.scenario.duration = undefined;
     };
 
     tribeEndpointsService.getDetailsFromMetadata($scope.endpointUrlInfo).then(detailsResponse => {
@@ -239,6 +315,15 @@ export class TryMeController {
         header: 'Digest',
         // ui
         $$show: false
+      },
+      scenario: {
+        threads: 1,
+        iterations: 1,
+        duration: undefined,
+        // ui
+        $$show: false,
+        $$useDuration: false,
+        $$durationUnit: 'seconds'
       },
       // ui
       $$forceBody: false

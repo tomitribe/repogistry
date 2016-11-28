@@ -133,7 +133,9 @@ public class GenericClientServiceTest {
     public void oauth2() {
         assertEquals(
                 "bearer awesome-token",
-                client.oauth2Header("password", "testuser", "testpassword", null, "client", "client secret", registry.root() + "/api/mock/oauth2/token", false));
+                client.oauth2Header(
+                        "password", "testuser", "testpassword", null, "client", "client secret",
+                        registry.root() + "/api/mock/oauth2/token", null, false));
     }
 
     @Test(expected = NullPointerException.class)
