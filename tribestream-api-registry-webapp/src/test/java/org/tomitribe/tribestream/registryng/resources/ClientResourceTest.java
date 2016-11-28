@@ -18,6 +18,7 @@
  */
 package org.tomitribe.tribestream.registryng.resources;
 
+import org.apache.johnzon.mapper.MapperBuilder;
 import org.apache.openejb.testing.Application;
 import org.apache.tomee.embedded.junit.TomEEEmbeddedSingleRunner;
 import org.junit.Rule;
@@ -31,12 +32,16 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static javax.ws.rs.client.Entity.entity;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -140,7 +145,7 @@ public class ClientResourceTest {
         assertEquals("signature", header.getName());
         assertEquals(
                 "Signature keyId=\"key\",algorithm=\"hmac-sha256\",headers=\"(request-target) date\"," +
-                "signature=\"niZ0RzylAhy4DtKNcUZl0441+gUxON9t9GVS+KMfOJk=\"", header.getValue());
+                        "signature=\"niZ0RzylAhy4DtKNcUZl0441+gUxON9t9GVS+KMfOJk=\"", header.getValue());
     }
 
     @Test
@@ -171,13 +176,93 @@ public class ClientResourceTest {
         }});
 
         final ClientResource.HttpResponse response = registry.target()
-                .path("/api/try")
+                .path("/api/try/invoke")
                 .request(APPLICATION_JSON_TYPE)
                 .post(entity(request, APPLICATION_JSON_TYPE), ClientResource.HttpResponse.class);
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
         assertTrue(response.getPayload(), response.getPayload().contains("GET/api/spy"));
         assertTrue(response.getPayload(), response.getPayload().contains("digest=sha-256=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="));
         assertTrue(response.getClientExecutionDurationMs() >= 0); // hard to be accurate there and a mock...would test the mock
+    }
+
+    @Test
+    public void downloadCsv() throws UnsupportedEncodingException {
+        final Response response = registry.target(false)
+                .path("/api/try/download")
+                .queryParam("output-type", "csv")
+                .queryParam("filename", "test")
+                .queryParam("data", Base64.getUrlEncoder().encodeToString(new MapperBuilder().build().writeObjectAsString(
+                        new ClientResource.DownloadResponses(
+                                asList(
+                                        new ClientResource.LightHttpResponse(200, null, 456),
+                                        new ClientResource.LightHttpResponse(401, null, 852),
+                                        new ClientResource.LightHttpResponse(404, null, 8549)
+                                ), registry.basicHeader())).getBytes(StandardCharsets.UTF_8)))
+                .request(TEXT_PLAIN)
+                .get();
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertEquals("attachment; filename=\"test.csv\"", response.getHeaderString("Content-Disposition"));
+        assertEquals(
+                "Status,Duration (ms),Error\r\n" +
+                        "200,456,\r\n" +
+                        "401,852,\r\n" +
+                        "404,8549,\r\n", response.readEntity(String.class));
+    }
+
+    @Test
+    public void requestStream() throws UnsupportedEncodingException {
+        final ClientResource.HttpRequest request = new ClientResource.HttpRequest();
+        request.setMethod("GET");
+        request.setUrl(registry.root() + "/api/spy");
+        request.setHeaders(new HashMap<String, String>() {{
+            put("Date", new Date(0).toString()); // ensure test can be re-executed
+            put("Authorization", registry.basicHeader());
+        }});
+        request.setDigest(new ClientResource.DigestHeader() {{
+            setAlgorithm("sha-256");
+        }});
+        request.setScenario(new ClientResource.Scenario() {{
+            setInvocations(15);
+            setThreads(6);
+        }});
+
+        final Response response = registry.target(false /*js doesn't support security there*/)
+                .path("/api/try/invoke/stream")
+                .queryParam("request", Base64.getUrlEncoder().encodeToString(new MapperBuilder().build().writeObjectAsString(
+                        new ClientResource.SseRequest(request, registry.basicHeader())).getBytes(StandardCharsets.UTF_8)))
+                .request("text/event-stream")
+                .get();
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+
+        final String data = response.readEntity(String.class);
+        final String[] split = data.split("\n\n");
+        assertEquals(15, Stream.of(split).filter(d -> d.contains("\"status\":200")).count());
+        // last one is stats, ex: data:{"countPerStatus":{"200":15},"duration":135,"total":15,"min":22,"max":22,"average":28.266666666666666}
+        assertTrue(data, split[15].contains("duration"));
+        assertTrue(data, split[15].contains("average"));
+        assertTrue(data, split[15].contains("\"countPerStatus\":{\"200\":15}"));
+        assertTrue(data, split[15].contains("\"total\":15"));
+    }
+
+    @Test
+    public void requestStreamForbidden() throws UnsupportedEncodingException {
+        final ClientResource.HttpRequest request = new ClientResource.HttpRequest();
+        request.setMethod("GET");
+        request.setUrl(registry.root() + "/api/spy");
+        request.setScenario(new ClientResource.Scenario() {{
+            setInvocations(15);
+            setThreads(6);
+        }});
+
+        final Response response = registry.target()
+                .path("/api/try/invoke/stream")
+                .queryParam("request", Base64.getUrlEncoder().encodeToString(new MapperBuilder().build().writeObjectAsString(
+                        new ClientResource.SseRequest(
+                                request,
+                                "Basic " + Base64.getEncoder().encodeToString("wrong".getBytes(StandardCharsets.UTF_8)))).getBytes(StandardCharsets.UTF_8)))
+                .request("text/event-stream")
+                .get();
+        assertEquals(Response.Status.FORBIDDEN.getStatusCode(), response.getStatus());
     }
 
     @Test
@@ -212,17 +297,18 @@ public class ClientResourceTest {
             setUsername("testuser");
             setPassword("testpassword");
             setHeader("oauth2");
+            setTokenType("");
         }});
 
         final ClientResource.HttpResponse response = registry.target()
-                .path("/api/try")
+                .path("/api/try/invoke")
                 .request(APPLICATION_JSON_TYPE)
                 .post(entity(request, APPLICATION_JSON_TYPE), ClientResource.HttpResponse.class);
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
         assertTrue(response.getPayload(), response.getPayload().contains("GET/api/spy"));
         assertTrue(response.getPayload(), response.getPayload().contains("digest=sha-256=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="));
         assertTrue(response.getPayload(), response.getPayload().contains("basic=Basic dTpw"));
-        assertTrue(response.getPayload(), response.getPayload().contains("oauth2=bearer awesome-token"));
+        assertTrue(response.getPayload(), response.getPayload().contains("oauth2=awesome-token"));
         assertTrue(response.getPayload(), response.getPayload().contains("signature=" +
                 "Signature keyId=\"key\",algorithm=\"hmac-sha256\",headers=\"(request-target) date\",signature=\"niZ0RzylAhy4DtKNcUZl0441+gUxON9t9GVS+KMfOJk=\""));
     }

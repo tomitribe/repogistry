@@ -5,7 +5,7 @@ angular.module('tribe-tryme', [
   'ui.codemirror', 'ui.select',
   'tomitribe-button', 'tomitribe-dropdown', 'tomitribe-fab',
   'tribe-widget-password', 'tribe-option-picker'
-]).service('TryMeService', ['$http', $http => new TryMeService($http)])
+]).service('TryMeService', TryMeService)
   .controller('TryMeController', TryMeController)
   // should be moved to be global but not yet the case
   .config(['uiSelectConfig', function(uiSelectConfig) { uiSelectConfig.theme = 'selectize'; }]);
