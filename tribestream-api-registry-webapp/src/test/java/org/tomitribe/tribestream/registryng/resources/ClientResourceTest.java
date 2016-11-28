@@ -191,13 +191,12 @@ public class ClientResourceTest {
                 .path("/api/try/download")
                 .queryParam("output-type", "csv")
                 .queryParam("filename", "test")
-                .queryParam("data", Base64.getUrlEncoder().encodeToString(new MapperBuilder().build().writeObjectAsString(
-                        new ClientResource.DownloadResponses(
-                                asList(
-                                        new ClientResource.LightHttpResponse(200, null, 456),
-                                        new ClientResource.LightHttpResponse(401, null, 852),
-                                        new ClientResource.LightHttpResponse(404, null, 8549)
-                                ), registry.basicHeader())).getBytes(StandardCharsets.UTF_8)))
+                .queryParam("data", cipher(new ClientResource.DownloadResponses(
+                        asList(
+                                new ClientResource.LightHttpResponse(200, null, 456),
+                                new ClientResource.LightHttpResponse(401, null, 852),
+                                new ClientResource.LightHttpResponse(404, null, 8549)
+                        ), registry.basicHeader())))
                 .request(TEXT_PLAIN)
                 .get();
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
@@ -228,8 +227,7 @@ public class ClientResourceTest {
 
         final Response response = registry.target(false /*js doesn't support security there*/)
                 .path("/api/try/invoke/stream")
-                .queryParam("request", Base64.getUrlEncoder().encodeToString(new MapperBuilder().build().writeObjectAsString(
-                        new ClientResource.SseRequest(request, registry.basicHeader())).getBytes(StandardCharsets.UTF_8)))
+                .queryParam("request", cipher(new ClientResource.SseRequest(request, registry.basicHeader())))
                 .request("text/event-stream")
                 .get();
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
@@ -256,10 +254,8 @@ public class ClientResourceTest {
 
         final Response response = registry.target()
                 .path("/api/try/invoke/stream")
-                .queryParam("request", Base64.getUrlEncoder().encodeToString(new MapperBuilder().build().writeObjectAsString(
-                        new ClientResource.SseRequest(
-                                request,
-                                "Basic " + Base64.getEncoder().encodeToString("wrong".getBytes(StandardCharsets.UTF_8)))).getBytes(StandardCharsets.UTF_8)))
+                .queryParam("request", cipher(new ClientResource.SseRequest(
+                        request, "Basic " + Base64.getEncoder().encodeToString("wrong".getBytes(StandardCharsets.UTF_8)))))
                 .request("text/event-stream")
                 .get();
         assertEquals(Response.Status.FORBIDDEN.getStatusCode(), response.getStatus());
@@ -311,5 +307,13 @@ public class ClientResourceTest {
         assertTrue(response.getPayload(), response.getPayload().contains("oauth2=awesome-token"));
         assertTrue(response.getPayload(), response.getPayload().contains("signature=" +
                 "Signature keyId=\"key\",algorithm=\"hmac-sha256\",headers=\"(request-target) date\",signature=\"niZ0RzylAhy4DtKNcUZl0441+gUxON9t9GVS+KMfOJk=\""));
+    }
+
+    private String cipher(final Object data) {
+        return registry.target()
+                .path("/api/try/crypt")
+                .request(APPLICATION_JSON_TYPE)
+                .post(entity(new ClientResource.CryptoData(new MapperBuilder().build().writeObjectAsString(data)), APPLICATION_JSON_TYPE), ClientResource.CryptoData.class)
+                .getData();
     }
 }
