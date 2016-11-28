@@ -61,6 +61,8 @@ export class TryMeController {
         accumulator[e.name] = e.value;
         return accumulator;
       }, {});
+      $scope.request.signature.headers = $scope.headers.filter(h => !!h.$$useForSignature && !!h.name).map(h => h.name);
+
       tryMeService.request($scope.request)
         .success(result => {
           $scope.response = result;
@@ -100,12 +102,6 @@ export class TryMeController {
         $scope.request.signature = {
           headers: ['(request-target)'],
           algorithm: 'hmac-sha256',
-          method: $scope.request.method,
-          url: $scope.request.url,
-          requestHeaders: this.$scope.headers.reduce((accumulator, e) => {
-            accumulator[e.name] = e.value;
-            return accumulator;
-          }, {}),
           $$show: true
         };
         /*
