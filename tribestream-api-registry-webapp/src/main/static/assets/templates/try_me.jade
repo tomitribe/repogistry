@@ -131,6 +131,7 @@ div(data-app)
                       th required
                       th.description description
                       th values
+                      th(ng-if="request.signature.$$show") Sign
                       th
                   tbody
                     tr(ng-repeat="h in headers | orderBy:'h.name' track by $index")
@@ -152,6 +153,8 @@ div(data-app)
                           ui-select-match(placeholder="Header value") {{$select.selected}}
                           ui-select-choices(repeat="p in (h.$$proposals || []) | filter:$select.search track by $index")
                             div {{p}}
+                      th(ng-if="request.signature.$$show")
+                        i(data-tribe-checkbox, data-value="h.$$useForSignature", data-change="onSignatureHeaderClick(h)")
                       td
                         div
                           i.fa.fa-trash-o(ng-click="removeHeader(h);")
@@ -174,6 +177,7 @@ div(data-app)
                           ui-select-match(placeholder="Parameter value") {{$select.selected}}
                           ui-select-choices(repeat="p in [param.value] | filter:$select.search track by $index")
                             div {{p}}
+                      th(ng-if="request.signature.$$show")
                       td
                         div
                           i.fa.fa-trash-o(ng-click="removePathParameter(h);")
@@ -196,6 +200,7 @@ div(data-app)
                           ui-select-match(placeholder="Query parameter value") {{$select.selected}}
                           ui-select-choices(repeat="p in [param.value] | filter:$select.search track by $index")
                             div {{p}}
+                      th(ng-if="request.signature.$$show") 
                       td
                         div
                           i.fa.fa-trash-o(ng-click="removeQueryParameter(h);")
