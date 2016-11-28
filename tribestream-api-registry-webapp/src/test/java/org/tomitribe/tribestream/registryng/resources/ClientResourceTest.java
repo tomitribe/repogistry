@@ -41,6 +41,7 @@ import java.util.stream.Stream;
 import static java.util.Arrays.asList;
 import static javax.ws.rs.client.Entity.entity;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -182,6 +183,30 @@ public class ClientResourceTest {
         assertTrue(response.getPayload(), response.getPayload().contains("GET/api/spy"));
         assertTrue(response.getPayload(), response.getPayload().contains("digest=sha-256=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="));
         assertTrue(response.getClientExecutionDurationMs() >= 0); // hard to be accurate there and a mock...would test the mock
+    }
+
+    @Test
+    public void downloadCsv() throws UnsupportedEncodingException {
+        final Response response = registry.target(false)
+                .path("/api/try/download")
+                .queryParam("output-type", "csv")
+                .queryParam("filename", "test")
+                .queryParam("data", Base64.getUrlEncoder().encodeToString(new MapperBuilder().build().writeObjectAsString(
+                        new ClientResource.DownloadResponses(
+                                asList(
+                                        new ClientResource.LightHttpResponse(200, null, 456),
+                                        new ClientResource.LightHttpResponse(401, null, 852),
+                                        new ClientResource.LightHttpResponse(404, null, 8549)
+                                ), registry.basicHeader())).getBytes(StandardCharsets.UTF_8)))
+                .request(TEXT_PLAIN)
+                .get();
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertEquals("attachment; filename=\"test.csv\"", response.getHeaderString("Content-Disposition"));
+        assertEquals(
+                "Status,Duration (ms),Error\r\n" +
+                        "200,456,\r\n" +
+                        "401,852,\r\n" +
+                        "404,8549,\r\n", response.readEntity(String.class));
     }
 
     @Test

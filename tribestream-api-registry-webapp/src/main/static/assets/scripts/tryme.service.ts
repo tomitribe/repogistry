@@ -1,4 +1,5 @@
 export class TryMeService {
+  static $inject = ['$http'];
   constructor(private $http) {
   }
 

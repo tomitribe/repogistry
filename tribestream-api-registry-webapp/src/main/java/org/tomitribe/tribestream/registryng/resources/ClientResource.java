@@ -21,10 +21,13 @@ package org.tomitribe.tribestream.registryng.resources;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.deltaspike.core.api.config.ConfigProperty;
 import org.tomitribe.tribestream.registryng.documentation.Description;
 import org.tomitribe.tribestream.registryng.entities.TryMeExecution;
 import org.tomitribe.tribestream.registryng.security.SecurityService;
+import org.tomitribe.tribestream.registryng.service.cipher.CryptoService;
 import org.tomitribe.tribestream.registryng.service.client.GenericClientService;
 import org.tomitribe.tribestream.registryng.service.threading.Invoker;
 import org.tomitribe.util.Duration;
@@ -49,19 +52,20 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.MessageBodyReader;
+import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Providers;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.lang.annotation.Annotation;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -83,7 +87,9 @@ import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
 
 @Path("try")
 @ApplicationScoped
@@ -108,9 +114,14 @@ public class ClientResource {
     @Inject
     private SecurityService security;
 
+    @Inject
+    private CryptoService cryptoService;
+
     private final Annotation[] annotations = new Annotation[0];
     private final byte[] dataStart = "data:".getBytes(StandardCharsets.UTF_8);
     private final byte[] dataEnd = "\n\n".getBytes(StandardCharsets.UTF_8);
+    private final GenericType<Collection<LightHttpResponse>> collectionLightResponsesType = new GenericType<Collection<LightHttpResponse>>() {
+    };
 
     @PostConstruct
     private void init() {
@@ -167,6 +178,58 @@ public class ClientResource {
         }
     }
 
+    @POST
+    @Path("crypt")
+    public CryptoData crypto(final CryptoData data) {
+        return new CryptoData(cryptoService.toUrlString(data.getData()));
+    }
+
+    @GET // more portable way to do a download from a browser
+    @Path("download")
+    @Consumes(APPLICATION_JSON)
+    @Produces(TEXT_PLAIN)
+    public Response download(@QueryParam("output-type") @DefaultValue("csv") final String extension,
+                             @QueryParam("filename") @DefaultValue("responses") final String filename,
+                             @QueryParam("data") final String base64EncodedResponses,
+                             @Context final HttpServletRequest httpServletRequest,
+                             @Context final Providers providers) {
+        final DownloadResponses downloadResponses = loadPayload(DownloadResponses.class, providers, base64EncodedResponses);
+        final String auth = downloadResponses.getIdentity();
+        security.check(auth, httpServletRequest, () -> {
+        }, () -> {
+            throw new WebApplicationException(Response.Status.FORBIDDEN);
+        });
+
+        final String contentType;
+        final StreamingOutput builder;
+        switch (extension) {
+            case "csv":
+                contentType = TEXT_PLAIN;
+                builder = output -> {
+                    final CSVFormat format = CSVFormat.EXCEL.withHeader("Status", "Duration (ms)", "Error");
+                    final StringWriter buffer = new StringWriter();
+                    try (final CSVPrinter print = format.print(buffer)) {
+                        downloadResponses.getData().forEach(r -> {
+                            try {
+                                print.printRecord(r.getStatus(), r.getClientExecutionDurationMs(), r.getError());
+                            } catch (final IOException e) { // quite unlikely
+                                throw new IllegalStateException(e);
+                            }
+                        });
+                    }
+                    output.write(buffer.toString().getBytes(StandardCharsets.UTF_8));
+                };
+                break;
+            default:
+                throw new WebApplicationException(Response.Status.BAD_REQUEST);
+        }
+        return Response.status(Response.Status.OK)
+                .header("ContentType", contentType)
+                .header("Content-Disposition", "attachment; filename=\"" + filename + '.' + extension + "\"")
+                .entity(builder)
+                .build();
+    }
+
     @GET
     @Path("invoke/stream")
     @Produces("text/event-stream") // will be part of JAX-RS 2.1, for now just making it working
@@ -177,18 +240,7 @@ public class ClientResource {
             // base64 encoded json with the request and identify since EventSource doesnt handle it very well
             // TODO: use a ciphering with a POST endpoint to avoid to have it readable (or other)
             @QueryParam("request") final String requestBytes) {
-        final MessageBodyReader<SseRequest> requestReader = providers.getMessageBodyReader(
-                SseRequest.class, SseRequest.class,
-                annotations, APPLICATION_JSON_TYPE);
-
-        final SseRequest in;
-        try {
-            in = requestReader.readFrom(
-                    SseRequest.class, SseRequest.class, annotations, APPLICATION_JSON_TYPE,
-                    new MultivaluedHashMap<>(), new ByteArrayInputStream(Base64.getUrlDecoder().decode(requestBytes)));
-        } catch (final IOException e) {
-            throw new IllegalArgumentException(e);
-        }
+        final SseRequest in = loadPayload(SseRequest.class, providers, requestBytes);
 
         final String auth = in.getIdentity();
         security.check(auth, httpServletRequest, () -> {
@@ -360,6 +412,15 @@ public class ClientResource {
                                     request.getRequestHeaders()));
                 })
                 .orElseThrow(() -> new WebApplicationException(Response.Status.BAD_REQUEST));
+    }
+
+    private <T> T loadPayload(final Class<T> type, final Providers providers, final String data) {
+        try {
+            return providers.getMessageBodyReader(type, type, annotations, APPLICATION_JSON_TYPE)
+                    .readFrom(type, type, annotations, APPLICATION_JSON_TYPE, new MultivaluedHashMap<>(), new ByteArrayInputStream(cryptoService.fromUrlString(data)));
+        } catch (final IOException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     private Execution toExecution(final TryMeExecution e) {
@@ -581,5 +642,20 @@ public class ClientResource {
     public static class SseRequest {
         private HttpRequest http;
         private String identity;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class DownloadResponses {
+        private Collection<LightHttpResponse> data;
+        private String identity;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class CryptoData {
+        private String data;
     }
 }

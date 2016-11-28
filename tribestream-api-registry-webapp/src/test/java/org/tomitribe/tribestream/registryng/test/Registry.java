@@ -74,7 +74,7 @@ import static org.tomitribe.util.Join.join;
         @ContainerProperties.Property(name = "tribe.registry.monitoring.http.urls", value = "http://localhost:${test.elasticsearch.port}"),
         @ContainerProperties.Property(
                 name = "tribe.registry.security.filter.whitelist",
-                value = "/api/server/info,/api/login,/api/security/oauth2,/api/security/oauth2/status,/api/mock/oauth2/token,/api/try/invoke/stream")
+                value = "/api/server/info,/api/login,/api/security/oauth2,/api/security/oauth2/status,/api/mock/oauth2/token,/api/try/invoke/stream,/api/try/download")
         /* can help for debugging (dumps sql queries and ES client HTTP requests
         ,@ContainerProperties.Property(name = "registryDatasource.LogSql", value = "true"),
         @ContainerProperties.Property(name = "tribe.registry.elasticsearch.features", value = "org.apache.cxf.feature.LoggingFeature")

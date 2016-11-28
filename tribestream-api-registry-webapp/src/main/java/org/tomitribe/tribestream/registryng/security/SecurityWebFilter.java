@@ -56,7 +56,7 @@ public class SecurityWebFilter implements Filter {
     @Description("The comma separated list of URL not requiring any valid logged in user. Defaults match server expectation, it is not recommanded to remove them.")
     @ConfigProperty(
             name = "tribe.registry.security.filter.whitelist",
-            defaultValue = "/api/server/info,/api/login,/api/security/oauth2,/api/security/oauth2/status,/api/try/invoke/stream")
+            defaultValue = "/api/server/info,/api/login,/api/security/oauth2,/api/security/oauth2/status,/api/try/invoke/stream,/api/try/download")
     private String whitelistConfig;
 
     @Override

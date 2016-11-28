@@ -1,8 +1,13 @@
 import {TryMeService} from './tryme.service';
 
 export class TryMeController {
-  static $inject = ['$scope', '$routeParams', '$window', '$timeout', 'tribeEndpointsService', 'tribeLinkHeaderService', 'systemMessagesService', 'TryMeService' ,'currentAuthProvider'];
-  constructor(private $scope,
+  static $inject = [
+    '$rootScope','$scope', '$routeParams', '$window', '$timeout',
+    'tribeEndpointsService', 'tribeLinkHeaderService', 'systemMessagesService',
+    'TryMeService' ,'currentAuthProvider'
+  ];
+  constructor(private $rootScope,
+              private $scope,
               private $routeParams,
               private $window,
               private $timeout,
@@ -95,6 +100,14 @@ export class TryMeController {
           const onDone = () => {
             source.close();
             $scope.responseStream.finished = true;
+            $scope.responseStream.csvLink = $rootScope.baseFullPath + 'api/try/download?output-type=csv' +
+                '&filename=' + encodeURIComponent($scope.endpointUrlInfo.verb + '_' +
+                    $scope.endpointUrlInfo.endpointPath
+                      .replace(' ', '').replace(':', '')
+                      .replace('{', '').replace('}', '')
+                      .replace('/', '_') + '_' +
+                    ($scope.endpointUrlInfo.version || '')) +
+                '&data=' + window['Base64'].encodeURI(angular.toJson({data:$scope.responseStream.items, identity:header}));
           };
           source.onerror = error => {
             onDone();
