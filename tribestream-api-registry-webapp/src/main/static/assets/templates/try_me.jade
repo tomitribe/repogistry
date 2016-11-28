@@ -8,39 +8,50 @@ div(data-app)
         a(x-ng-href="application/{{endpointUrlInfo.applicationName}}?version={{endpointUrlInfo.version || ''}}") {{endpointUrlInfo.applicationName}} {{endpointUrlInfo.version || ''}}
         i.fa.fa-chevron-right
         a(x-ng-href="endpoint/{{endpointUrlInfo.applicationName}}/{{endpointUrlInfo.verb}}/{{endpointUrlInfo.endpointPath}}?version={{endpointUrlInfo.version || ''}}") {{endpointUrlInfo.verb}} {{endpointUrlInfo.endpointPath}} {{endpointUrlInfo.version || ''}}
-      .buttons
-        .save(x-ng-click="tryIt();")
-          i.fa.fa-floppy-o
-          span Try It!
-      tribe-dropdown(dropdown-direction='down', pull-direction='left', dropdown-trigger='dropdownClick', auto-close="true")
-          tribe-dropdown-trigger
-            i.bimg(style="font-size: 25px;")
-          tribe-dropdown-list
-            span(ng-repeat="opt in menuOptions", ng-click="onPickerSelect(opt);$dropdown.close();")
-              div(ng-if="!!opt.displayName").item {{::opt.displayName}}
-              div(ng-if="!opt.displayName").separator
-    div
-      div
-        article.try-me
-          a(x-ng-href="endpoint/{{endpointUrlInfo.applicationName}}/{{endpointUrlInfo.verb}}/{{endpointUrlInfo.endpointPath}}?version={{endpointUrlInfo.version || ''}}")
-          h2 {{endpointUrlInfo.verb}} {{endpointUrlInfo.endpointPath}} {{endpointUrlInfo.version || ''}}
 
+
+    div.page-header
+      div.header-container
+        div.page-title
+          a(x-ng-href="endpoint/{{endpointUrlInfo.applicationName}}/{{endpointUrlInfo.verb}}/{{endpointUrlInfo.endpointPath}}?version={{endpointUrlInfo.version || ''}}")
+          h2.title {{endpointUrlInfo.verb}} {{endpointUrlInfo.endpointPath}} {{endpointUrlInfo.version || ''}}
+        div.bolt-button
+          tribe-fab(fab-direction='down' fab-trigger='fabClick' opened-status='addButtonStatus')
+            tribe-fab-trigger
+              tribe-button(tribe-size='l', tribe-type='fab')
+                i.fa.fa-bolt
+            tribe-fab-actions
+              tribe-button(ng-repeat="opt in mainMenuOptions", tribe-size='m', tribe-type='fab', href="#", ng-click="onPickerSelect(opt);$dropdown.close();")
+                i(class="fa {{opt.icon}}")
+                div.text {{opt.displayName}}
+        div.header-menu
+          tribe-dropdown(dropdown-direction='down', pull-direction='left', dropdown-trigger='dropdownClick', auto-close="true")
+            tribe-dropdown-trigger
+              i.bimg(style="font-size: 25px;")
+            tribe-dropdown-list
+              span(ng-repeat="opt in menuOptions", ng-click="onPickerSelect(opt);$dropdown.close();")
+                div(ng-if="!!opt.displayName").item {{::opt.displayName}}
+                div(ng-if="!opt.displayName").separator
+
+    article.try-me
           div.form
-            div
+            div.form-line
               h2 Request
               div(data-tribe-singleselect, data-editable="true", data-selected-option="request.url", data-placeholder="URL to request")
-            div(ng-if="request.oauth2.$$show")
-              h2 OAuth 2
-                div(tribe-option-picker, data-options="oauth2Options", data-change-callback="onPickerSelect(value)")
-              // todo: header name!
+            div.form-line(ng-if="request.oauth2.$$show")
               div
-                div(ng-click="request.oauth2.$$show = false;request.oauth2.endpoint = undefined;request.oauth2.username = undefined;").trash
-                  i.fa.fa-trash-o
-                span Token Endpoint
-                div(data-tribe-text, data-value="request.oauth2.endpoint")
+                div.flexbin
+                  h2 OAuth 2
+                    div(tribe-option-picker, data-options="oauth2Options", data-change-callback="onPickerSelect(value)")
+                    // todo: header name!
+                  div
+                    div(ng-click="removeOAuth2();").trash
+                      i.fa.fa-trash-o
+                h3 Token Endpoint
+                div(data-tribe-text, data-value="request.oauth2.endpoint", data-placeholder="Click to enter")
               div
                 div(ng-if="request.oauth2.$$client")
-                  div(ng-click="request.oauth2.$$client = false;request.oauth2.clientId = undefined;request.oauth2.clientSecret = undefined;").trash
+                  div(ng-click="removeOAuth2Client();").trash
                     i.fa.fa-trash-o
                   div
                     span Client ID
@@ -49,7 +60,7 @@ div(data-app)
                     span Client Secret
                     i(data-tribe-password-field, value="request.oauth2.clientSecret")
                 div(ng-if="request.oauth2.$$resourceOwner")
-                  div(ng-click="request.oauth2.$$resourceOwner = false;request.oauth2.username = undefined;request.oauth2.password = undefined;").trash
+                  div(ng-click="removeOAuth2ResourceOwner();").trash
                     i.fa.fa-trash-o
                   div
                     span Username
@@ -58,141 +69,166 @@ div(data-app)
                     span Password
                     i(data-tribe-password-field, value="request.oauth2.password")
 
-            div(ng-if="request.signature.$$show")
+            div.form-line(ng-if="request.signature.$$show")
               h2 Http Signature
+              // todo: header name!
               div
-                div(ng-click="request.signature.$$client = false;request.oauth2.clientId = undefined;request.oauth2.clientSecret = undefined;").trash
+                div(ng-click="removeSignature();").trash
                   i.fa.fa-trash-o
                 div
                   div
                     span Algorithm
-                    div(data-tribe-text, data-value="request.signature.algorithm")
+                    ui-select(ng-model="request.signature.algorithm", placeholder="Signature algorithm", tagging, tagging-label="false", tagging-tokens="ENTER|,")
+                      ui-select-match(placeholder="Signature algorithm") {{$select.selected}}
+                      ui-select-choices(repeat="p in signatureAlgorithmOptions | filter: $select.search track by $index")
+                        div {{p}}
                   div
                     span Key ID
                     div(data-tribe-text, data-value="request.signature.alias")
                   div
                     span KEY
-                    div(data-tribe-text, data-value="request.signature.secret")
+                    i(data-tribe-password-field, value="request.signature.secret")
+                  // todo: headers
 
-
-    div
-        //
-          v-pane
-            v-pane-header
-              div.try-me-line
-                div Headers
-                div(ng-click="addHeader();$pane.expand($pane.id);$event.stopPropagation();").try-me-button
-                  i.fa.fa-add
-                  span Add
-                div(ng-click="addOAuth2();$pane.expand($pane.id);$event.stopPropagation();").try-me-button
-                  i.fa.fa-add
-                  span OAuth2
-                div(ng-click="addSignature();$pane.expand($pane.id);$event.stopPropagation();").try-me-button
-                  i.fa.fa-add
-                  span HTTP Signature
-                div(ng-click="addBasic();$pane.expand($pane.id);$event.stopPropagation();").try-me-button
-                  i.fa.fa-add
-                  span Basic
-                div(ng-click="addDate();$pane.expand($pane.id);$event.stopPropagation();").try-me-button
-                  i.fa.fa-add
-                  span Date
-                div(ng-click="addDigest();$pane.expand($pane.id);$event.stopPropagation();").try-me-button
-                  i.fa.fa-add
-                  span Digest
-            v-pane-content
-              div(ng-repeat="h in headers track by $index")
-                div.try-me-line
-                  ui-select(ng-model="h.name", placeholder="Header name", on-select="onHeaderChange($item, h);", tagging, tagging-label="false", tagging-tokens="ENTER|,")
-                    ui-select-match(placeholder="Header name") {{$select.selected}}
-                    ui-select-choices(repeat="p in headerOptions | filter: $select.search track by $index")
-                      div {{p}}
-                  ui-select(ng-model="h.value", placeholder="Header value", tagging, tagging-label="false", tagging-tokens="ENTER|,")
-                    ui-select-match(placeholder="Header value") {{$select.selected}}
-                    ui-select-choices(repeat="p in (h.$$proposals || []) | filter: $select.search track by $index")
-                      div {{p}}
+            div.form-line(ng-if="request.basic.$$show")
+              h2 Basic Auth
+              div
+                div(ng-click="removeBasic();").trash
+                  i.fa.fa-trash-o
+                div
                   div
-                    div(ng-click="headers.splice($index, 1)")
-                      i.fa.fa-trash-o
-                      span Remove
-            v-pane
-              v-pane-header
-                div.try-me-line
-                  div Path Parameters
-                  div(ng-click="pathParameters.push({});$pane.expand($pane.id);$event.stopPropagation();").try-me-button
-                    i.fa.fa-add
-                    span Add
-              v-pane-content
-                div(ng-repeat="param in pathParameters track by $index")
-                  div.try-me-line
-                    ui-select(ng-model="param.name", placeholder="Path parameter name", tagging, tagging-label="false", tagging-tokens="ENTER|,")
-                      ui-select-match(placeholder="Path parameter name") {{$select.selected}}
-                      ui-select-choices(repeat="p in pathParameterOptions | filter:$select.search track by $index")
-                        div {{p}}
-                    ui-select(ng-model="param.value", placeholder="Path parameter value", tagging, tagging-label="false", tagging-tokens="ENTER|,")
-                      ui-select-match(placeholder="Path parameter value") {{$select.selected}}
-                      ui-select-choices(repeat="p in [param.value] | filter:$select.search track by $index")
-                        div {{p}}
+                    span Username
+                    div(data-tribe-text, data-value="request.basic.username")
+                  div
+                    span Password
+                    i(data-tribe-password-field, value="request.basic.password")
+            div.form-line(ng-if="request.digest.$$show")
+              h2 Payload digest
+              div
+                div(ng-click="removeDigest();").trash
+                  i.fa.fa-trash-o
+                div
+                  // todo: header name!
                     div
-                      div(ng-click="pathParameters.splice($index, 1)")
-                        i.fa.fa-trash-o
-                        span Remove
-          v-pane
-            v-pane-header
-              div.try-me-line
-                div Query Parameters
-                div(ng-click="queryParameters.push({});$pane.expand($pane.id);$event.stopPropagation();").try-me-button
-                  i.fa.fa-add
-                  span Add
-            v-pane-content
-              div(ng-repeat="param in queryParameters track by $index")
-                div.try-me-line
-                  ui-select(ng-model="param.name", placeholder="Query parameter name", tagging, tagging-label="false", tagging-tokens="ENTER|,")
-                    ui-select-match(placeholder="Query parameter name") {{$select.selected}}
-                    ui-select-choices(repeat="p in queryParameterOptions | filter:$select.search track by $index")
-                      div {{p}}
-                  ui-select(ng-model="param.value", placeholder="Query parameter value", tagging, tagging-label="false", tagging-tokens="ENTER|,")
-                    ui-select-match(placeholder="Query parameter value") {{$select.selected}}
-                    ui-select-choices(repeat="p in [param.value] | filter:$select.search track by $index")
-                      div {{p}}
+                      span Header name
+                      div(data-tribe-text, data-value="request.digest.header")
                   div
-                    div(ng-click="queryParameters.splice($index, 1)")
-                      i.fa.fa-trash-o
-                      span Remove
-          v-pane(ng-if="!!request.digest.algorithm")
-            v-pane-header Payload Digesting
-            v-pane-content
-              label Algorithm
-              div {{request.digest.algorithm}}
-              div(ng-click="request.digest.algorithm = undefined;")
-                i.fa.fa-trash-o
-                span Remove
-          v-pane(ng-if="request.method === 'POST' || request.method === 'PUT'")
-            v-pane-header Request Payload
-            v-pane-content
-              ui-codemirror(ng-model="request.payload", ui-codemirror-opts="payloadOptions")
-    article(ng-if="response").try-me
-      h3 Response
-      v-accordion(multiple="").vAccordion--default
-        v-pane(ng-if="response.status > 0")
-          v-pane-header HTTP Status
-          v-pane-content
-            h4 {{::response.status}}
-            div {{::response.statusDescription}}
-        v-pane(ng-if="response.status > 0")
-          v-pane-header
-            div.try-me-line
-              div Headers
-              input(ng-model="response.responseHeaderFilter", placeholder="Filter headers", ng-click="$event.stopPropagation();", ng-change="onResponseHeaderFiltering($pane);")
-          v-pane-content
-            div(ng-repeat="h in response.headers | filter:{name:response.responseHeaderFilter}")
-              div.try-me-line
-                label {{::h.name}}
-                div {{::h.value}}
-        v-pane(ng-if="response.status > 0 && !!response.payload")
-          v-pane-header Payload
-          v-pane-content
-            ui-codemirror(ng-model="response.payload", ui-codemirror-opts="payloadOptions")
-        v-pane(ng-if="!!response.error")
-          v-pane-header Client Error
-          v-pane-content
-            ui-codemirror(ng-model="response.error", ui-codemirror-opts="payloadOptions")
+                    span Algorithm
+                    ui-select(ng-model="request.digest.algorithm", placeholder="Digest algorithm", tagging, tagging-label="false", tagging-tokens="ENTER|,")
+                      ui-select-match(placeholder="Digest algorithm") {{$select.selected}}
+                      ui-select-choices(repeat="p in digestOptions | filter: $select.search track by $index")
+                        div {{p}}
+          div.parameters
+            h2 Parameters
+            tribe-dropdown(dropdown-direction='down', pull-direction='right', dropdown-trigger='dropdownClick', auto-close="true")
+                tribe-dropdown-trigger
+                  i.bimg(style="font-size: 25px;")
+                tribe-dropdown-list
+                  span(ng-repeat="opt in parametersOptions", ng-click="onPickerSelect(opt);$dropdown.close();")
+                    div(ng-if="!!opt.displayName").item {{::opt.displayName}}
+                    div(ng-if="!opt.displayName").separator
+            div
+              div(ng-show="headers.length + pathParameters.length + queryParameters.length > 0")
+                table
+                  thead
+                    tr
+                      th name
+                      th type
+                      th placement
+                      th required
+                      th.description description
+                      th values
+                      th
+                  tbody
+                    tr(ng-repeat="h in headers | orderBy:'h.name' track by $index")
+                      td
+                        ui-select(ng-model="h.name", placeholder="Header name", on-select="onHeaderChange($item, h);", tagging, tagging-label="false", tagging-tokens="ENTER|,")
+                          ui-select-match(placeholder="Header name") {{$select.selected}}
+                          ui-select-choices(repeat="p in headerOptions | filter:$select.search track by $index")
+                            div {{p}}
+                      td
+                        div {{param.type}}
+                      td
+                        div header
+                      td
+                        div {{param.required ? 'Yes' : 'No'}}
+                      td.description
+                        div {{param.description}}
+                      td
+                        ui-select(ng-model="h.value", placeholder="Header value", tagging, tagging-label="false", tagging-tokens="ENTER|,")
+                          ui-select-match(placeholder="Header value") {{$select.selected}}
+                          ui-select-choices(repeat="p in (h.$$proposals || []) | filter:$select.search track by $index")
+                            div {{p}}
+                      td
+                        div
+                          i.fa.fa-trash-o(ng-click="removeHeader(h);")
+                    tr(ng-repeat="param in pathParameters | orderBy:'p.name' track by $index")
+                      td
+                        ui-select(ng-model="param.name", placeholder="Parameter name", tagging, tagging-label="false", tagging-tokens="ENTER|,")
+                          ui-select-match(placeholder="Parameter name") {{$select.selected}}
+                          ui-select-choices(repeat="p in pathParameterOptions | filter:$select.search track by $index")
+                            div {{p}}
+                      td
+                        div {{param.type}}
+                      td
+                        div path
+                      td
+                        div {{param.required ? 'Yes' : 'No'}}
+                      td.description
+                        div {{param.description}}
+                      td
+                        ui-select(ng-model="param.value", placeholder="Parameter value", tagging, tagging-label="false", tagging-tokens="ENTER|,")
+                          ui-select-match(placeholder="Parameter value") {{$select.selected}}
+                          ui-select-choices(repeat="p in [param.value] | filter:$select.search track by $index")
+                            div {{p}}
+                      td
+                        div
+                          i.fa.fa-trash-o(ng-click="removePathParameter(h);")
+                    tr(ng-repeat="param in queryParameters | orderBy:'p.name' track by $index")
+                      td
+                        ui-select(ng-model="param.name", placeholder="Query parameter name", tagging, tagging-label="false", tagging-tokens="ENTER|,")
+                          ui-select-match(placeholder="Query parameter name") {{$select.selected}}
+                          ui-select-choices(repeat="p in queryParametersOptions | filter:$select.search track by $index")
+                            div {{p}}
+                      td
+                        div {{param.type}}
+                      td
+                        div query
+                      td
+                        div {{param.required ? 'Yes' : 'No'}}
+                      td.description
+                        div {{param.description}}
+                      td
+                        ui-select(ng-model="param.value", placeholder="Query parameter value", tagging, tagging-label="false", tagging-tokens="ENTER|,")
+                          ui-select-match(placeholder="Query parameter value") {{$select.selected}}
+                          ui-select-choices(repeat="p in [param.value] | filter:$select.search track by $index")
+                            div {{p}}
+                      td
+                        div
+                          i.fa.fa-trash-o(ng-click="removeQueryParameter(h);")
+          div(ng-if="request.method === 'POST' || request.method === 'PUT' || request.$$forceBody")
+            h2 Body
+            ui-codemirror(ng-model="request.payload", ui-codemirror-opts="payloadOptions")
+          div(ng-if="response")
+            div
+              h2 Response
+              span(ng-if="response.status > 0") {{::response.status}}
+              span(ng-if="response.status > 0 && response.clientExecutionDurationMs >= 0")
+                i.fa.fa-exchange
+                span {{response.clientExecutionDurationMs}} ms
+              // div {{::response.statusDescription}}
+            div(ng-if="response.status > 0")
+              div(ng-show="headers.length + pathParameters.length + queryParameters.length > 0")
+                table
+                  thead
+                    tr
+                      th name
+                      th value
+                  tbody
+                    tr(ng-repeat="h in response.headers | orderBy:'h.name' track by $index")
+                      td {{h.name}}
+                      td {{h.value}}
+            div(ng-if="response.status > 0")
+              ui-codemirror(ng-model="response.payload", ui-codemirror-opts="payloadOptions")
+            div(ng-if="response.status <= 0")
+              ui-codemirror(ng-model="response.error", ui-codemirror-opts="payloadOptions")

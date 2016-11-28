@@ -86,7 +86,7 @@ public class ClientResource {
         return new ExecutionId(service.save(
                 endpointId,
                 toRequest(execution.getRequest()),
-                new GenericClientService.Response(response.getStatus(), response.getHeaders(), response.getPayload()),
+                new GenericClientService.Response(response.getStatus(), response.getHeaders(), response.getPayload(), response.getClientExecutionDurationMs()),
                 execution.getResponse().getError())
                 .getId());
     }
@@ -95,9 +95,9 @@ public class ClientResource {
     public HttpResponse invoke(final HttpRequest request) {
         try {
             final GenericClientService.Response response = service.invoke(toRequest(request));
-            return new HttpResponse(response.getStatus(), response.getHeaders(), response.getPayload(), null);
+            return new HttpResponse(response.getStatus(), response.getHeaders(), response.getPayload(), null, response.getClientExecutionDurationMs());
         } catch (final RuntimeException re) {
-            return new HttpResponse(-1, emptyMap(), null, re.getMessage() /*TODO: analyze it?*/);
+            return new HttpResponse(-1, emptyMap(), null, re.getMessage() /*TODO: analyze it?*/, -1);
         }
     }
 
@@ -159,7 +159,7 @@ public class ClientResource {
                                 .map(h -> new DigestHeader("Digest", h.getValue()))
                                 .orElse(null),
                         request.getPayload()),
-                new HttpResponse(response.getStatus(), response.getHeaders(), response.getPayload(), e.getResponseError()));
+                new HttpResponse(response.getStatus(), response.getHeaders(), response.getPayload(), e.getResponseError(), response.getClientExecutionDurationMs()));
     }
 
     private GenericClientService.Request toRequest(final HttpRequest request) {
@@ -297,6 +297,7 @@ public class ClientResource {
         private Map<String, String> headers;
         private String payload;
         private String error;
+        private long clientExecutionDurationMs;
     }
 
     @Data

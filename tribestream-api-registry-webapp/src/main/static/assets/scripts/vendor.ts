@@ -26,6 +26,8 @@ import '../../../static/bower_components/v-accordion/dist/v-accordion.js';
 import '../../../static/bower_components/angular-ui-select/dist/select.js';
 
 import '../../../static/node_modules/angular-tomitribe-common';
+import '../../../static/node_modules/angular-tomitribe-button';
+import '../../../static/node_modules/angular-tomitribe-fab';
 import '../../../static/node_modules/angular-tomitribe-dropdown';
 
 // styles
