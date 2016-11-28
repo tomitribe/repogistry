@@ -84,7 +84,7 @@ public class GenericClientServiceTest {
             }});
             final TryMeExecution out = client.save(endpoint.getId(), request, new GenericClientService.Response(204, new HashMap<String, String>() {{
                 put("Some-Header", "Value");
-            }}, "{}"), null);
+            }}, "{}", 0), null);
             assertEquals(1, client.countExecutions(endpoint.getId()));
 
             // check we can find pages
