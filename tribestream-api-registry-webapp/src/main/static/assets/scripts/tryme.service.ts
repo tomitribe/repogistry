@@ -3,6 +3,10 @@ export class TryMeService {
   constructor(private $http) {
   }
 
+  crypt(value) {
+    return this.$http.post('api/try/crypt', {data: angular.toJson(value)}).then(d => d.data.data);
+  }
+
   request(request) {
     return this.$http.post('api/try/invoke', request);
   }

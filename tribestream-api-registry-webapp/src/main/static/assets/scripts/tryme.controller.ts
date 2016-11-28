@@ -96,41 +96,45 @@ export class TryMeController {
         $scope.responseStream = $scope.responseStream || {items:[], $$scrollOnOutput: true};
 
         currentAuthProvider.get().getAuthorizationHeader().then(header => {
-          let source = new window['EventSource']('api/try/invoke/stream?request=' + window['Base64'].encodeURI(angular.toJson({http:$scope.request, identity:header})));
-          const onDone = () => {
-            source.close();
-            $scope.responseStream.finished = true;
-            $scope.responseStream.csvLink = $rootScope.baseFullPath + 'api/try/download?output-type=csv' +
-                '&filename=' + encodeURIComponent($scope.endpointUrlInfo.verb + '_' +
-                    $scope.endpointUrlInfo.endpointPath
-                      .replace(' ', '').replace(':', '')
-                      .replace('{', '').replace('}', '')
-                      .replace('/', '_') + '_' +
-                    ($scope.endpointUrlInfo.version || '')) +
-                '&data=' + window['Base64'].encodeURI(angular.toJson({data:$scope.responseStream.items, identity:header}));
-          };
-          source.onerror = error => {
-            onDone();
-            $scope.$apply(() => systemMessagesService.error(JSON.stringify(error)));
-          };
-          source.onmessage = event => {
-              $scope.$apply(() => {
-                const object = JSON.parse(event.data);
-                if (!!object.total) { // done, we don't use "event" to define the type cause of the number of messages we can get
-                  $scope.responseStream.stats = object;
-                  $scope.responseStream.stats.$$countPerStatusArray = Object.keys(object.countPerStatus || {})
-                    .map(k => {
-                      return {status: k, count: object.countPerStatus[k]};
-                    });
-                  onDone();
-                } else {
-                  $scope.responseStream.items.push(object);
-                  if ($scope.responseStream.$$scrollOnOutput) {
-                    $timeout(() => $window.scrollTo(0, $window.innerHeight));
-                  }
-                }
+          tryMeService.crypt({http:$scope.request, identity:header}).then(d => {
+            let source = new window['EventSource']('api/try/invoke/stream?request=' + d);
+            const onDone = () => {
+              source.close();
+              $scope.responseStream.finished = true;
+              tryMeService.crypt({data:$scope.responseStream.items, identity:header}).then(d => {
+                $scope.responseStream.csvLink = $rootScope.baseFullPath + 'api/try/download?output-type=csv' +
+                    '&filename=' + encodeURIComponent($scope.endpointUrlInfo.verb + '_' +
+                        $scope.endpointUrlInfo.endpointPath
+                          .replace(' ', '').replace(':', '')
+                          .replace('{', '').replace('}', '')
+                          .replace('/', '_') + '_' +
+                        ($scope.endpointUrlInfo.version || '')) +
+                    '&data=' + d;
               });
-          };
+            };
+            source.onerror = error => {
+              onDone();
+              $scope.$apply(() => systemMessagesService.error(JSON.stringify(error)));
+            };
+            source.onmessage = event => {
+                $scope.$apply(() => {
+                  const object = JSON.parse(event.data);
+                  if (!!object.total) { // done, we don't use "event" to define the type cause of the number of messages we can get
+                    $scope.responseStream.stats = object;
+                    $scope.responseStream.stats.$$countPerStatusArray = Object.keys(object.countPerStatus || {})
+                      .map(k => {
+                        return {status: k, count: object.countPerStatus[k]};
+                      });
+                    onDone();
+                  } else {
+                    $scope.responseStream.items.push(object);
+                    if ($scope.responseStream.$$scrollOnOutput) {
+                      $timeout(() => $window.scrollTo(0, $window.innerHeight));
+                    }
+                  }
+                });
+            };
+          });
         });
       } else {
         tryMeService.request($scope.request)
