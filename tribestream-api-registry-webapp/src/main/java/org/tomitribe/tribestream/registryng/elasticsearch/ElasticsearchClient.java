@@ -98,6 +98,7 @@ public class ElasticsearchClient {
         return client.target(base).path("{index}/{type}")
                 .resolveTemplate("index", index)
                 .resolveTemplate("type", endpointType)
+                .queryParam("refresh", "true")
                 .request(APPLICATION_JSON_TYPE)
                 .post(entity(data, APPLICATION_JSON_TYPE), JsonObject.class);
 
@@ -108,6 +109,7 @@ public class ElasticsearchClient {
                 .resolveTemplate("index", index)
                 .resolveTemplate("type", endpointType)
                 .resolveTemplate("id", id)
+                .queryParam("refresh", "true")
                 .request(APPLICATION_JSON_TYPE)
                 .post(entity(data, APPLICATION_JSON_TYPE), JsonObject.class);
     }
