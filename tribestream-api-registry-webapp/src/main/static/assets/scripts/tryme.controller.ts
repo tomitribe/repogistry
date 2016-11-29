@@ -320,6 +320,7 @@ export class TryMeController {
         header: 'Authorization',
         algorithm: 'hmac-sha256',
         headers: ['(request-target)'],
+        $$requestTarget: true,
         // ui
         $$show: false
       },
