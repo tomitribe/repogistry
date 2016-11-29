@@ -109,7 +109,7 @@ div.page-header
               color: $app-white
 
 article.try-me
-  padding: 184px 50px 20px 50px
+  padding: 184px 50px 60px 50px
   div.form
     div
       h2
@@ -123,8 +123,10 @@ article.try-me
         color: $tomitribe-orange
         font-family: $app-font-body
         border-radius: 3px
-        width: 100%
-        max-width: 500px
+        width: 70%
+        div.text
+          width: 100%
+          max-width: 100%
       [data-tribe-singleselect-selected] > div div.edit-icon
         color: $app-icon-gray
         font-size: 11px
@@ -166,6 +168,7 @@ article.try-me
             width: 46%
             float: left
             padding-right: 20px
+            margin-top: 10px
         div
           div.quarter
             width: 25%
@@ -176,6 +179,7 @@ article.try-me
           width: 50%
           float: left
           padding-right: 20px
+          margin-top: 10px
           &:nth-child(2)
             padding-right: 0
         h3
@@ -207,6 +211,11 @@ article.try-me
               margin-right: 50px
 
   div.parameters
+    padding-bottom: 40px
+    border-bottom: dotted $app-border-grey 2px
+    margin-bottom: 29px
+    display: inline-block
+    width: 100%
     h2
       font-size: $app-font-size-h2
       color: $app-black
@@ -258,9 +267,6 @@ article.try-me
         table
           width: 100%
           margin-top: 25px
-          padding-bottom: 20px
-          border-bottom: dotted $app-border-grey 2px
-          margin-bottom: 29px
           .selectize-control
             width: 170px
           .selectize-control.single
@@ -316,90 +322,127 @@ article.try-me
                     i
                       font-size: 13px
 
-  div.response
+  div
+    div.response
+      div
+        &:first-child
+          padding-bottom: 20px
+          border-bottom: dotted $app-border-grey 2px
+          margin-bottom: 29px
+          display: flex
+          width: 100%
+        h2
+          font-size: $app-font-size-h2
+          color: $app-black
+          font-family: $app-font-title
+          font-weight: $app-font-weight-h2
+          text-transform: uppercase
+          flex: 1
+        div.icons
+          border-bottom: 0
+          padding-top: 8px
+          span
+            font-size: 13px
+            color: $app-black
+            font-family: $app-font-title
+            font-weight: $app-font-weight-h3
+            text-transform: uppercase
+            i.fa.fa-exchange
+              padding: 0 10px 0 10px
+              font-size: 18px
+              margin-top: -5px
+            i.fa.fa-bolt
+              float: left
+              padding: 0 4px 0 0
+              font-size: 15px
+        div
+          border-bottom: dotted $app-border-grey 2px
+          margin-bottom: 29px
+          padding: 0
+          table
+            width: 100%
+            margin: 23px 0 40px 0
+            .selectize-control
+              width: 170px
+            .selectize-control.single
+              &.open
+                max-width: 170px
+            .selectize-control.single .selectize-input
+              &.open
+                max-width: 170px
+            .selectize-control.single > .selectize-dropdown
+              max-width: 300px
+            thead
+              background-color: #F9F9F9
+              border-top: 1px solid #EEEEEE
+              border-bottom: 1px solid #EEEEEE
+              tr
+                th
+                  font-size: 13px
+                  color: $app-black
+                  font-family: $app-font-title
+                  font-weight: $app-font-weight-h3
+                  text-transform: uppercase
+                  padding: 14px 0 12px 0
+                  text-align: left
+                  &:first-child
+                    padding: 14px 20px 12px 8px
+                    width: 32%
+            tbody
+              tr
+                border-bottom: 1px solid #EEEEEE
+                td
+                  font-family: $app-font-body
+                  font-size: 13px
+                  color: $app-text-gray
+                  padding: 12px 0
+                  &:first-child
+                    padding: 12px 0 12px 8px
+                  i.fa.fa-trash-o
+                    color: $app-white
+                    background-color: $app-button-grey
+                    padding: 5px
+                    border-radius: 3px
+                    font-size: 12px
+                    margin-top: 5px
+                    &:hover
+                      background-color: $app-black
+                  .selectize-control.single.direction-up > .selectize-dropdown
+                    top: -47px !important
+                th
+                  i[data-tribe-checkbox] > div
+                    border: 1px solid $app-border-grey
+                    > div.true
+                      background-color: $tomitribe-orange
+                      i
+                        font-size: 13px
+
     div
-      padding-bottom: 20px
-      border-bottom: dotted $app-border-grey 2px
-      margin-bottom: 29px
-      display: flex
-      width: 100%
       h2
         font-size: $app-font-size-h2
         color: $app-black
         font-family: $app-font-title
         font-weight: $app-font-weight-h2
         text-transform: uppercase
-        flex: 1
-      i.fa.fa-bolt
-        color: $tomitribe-green
-      span
-        font-size: 13px
-        color: $app-black
-        font-family: $app-font-title
-        font-weight: $app-font-weight-h3
-        text-transform: uppercase
-        i.fa.fa-exchange
-          padding: 0 8px 0 8px
-      div
-        table
-          width: 100%
-          margin-top: 25px
-          padding-bottom: 20px
-          border-bottom: dotted $app-border-grey 2px
-          margin-bottom: 29px
-          .selectize-control
-            width: 170px
-          .selectize-control.single
-            &.open
-              max-width: 170px
-          .selectize-control.single .selectize-input
-            &.open
-              max-width: 170px
-          .selectize-control.single > .selectize-dropdown
-            max-width: 300px
-          thead
-            background-color: #F9F9F9
-            //display: flex
-            border-top: 1px solid #EEEEEE
-            border-bottom: 1px solid #EEEEEE
-            //justify-content: space-between
-            //align-items: center
-            tr
-              th
-                font-size: 13px
-                color: $app-black
-                font-family: $app-font-title
-                font-weight: $app-font-weight-h3
-                text-transform: uppercase
-                padding: 14px 0 12px 0
-                text-align: left
-          tbody
-            tr
-              border-bottom: 1px solid #EEEEEE
-              td
-                font-family: $app-font-body
-                font-size: 13px
-                color: $app-text-gray
-                padding: 12px 0
-                i.fa.fa-trash-o
-                  color: $app-white
-                  background-color: $app-button-grey
-                  padding: 5px
-                  border-radius: 3px
-                  font-size: 12px
-                  margin-top: 5px
-                  &:hover
-                    background-color: $app-black
-                .selectize-control.single.direction-up > .selectize-dropdown
-                  top: -47px !important
-              th
-                i[data-tribe-checkbox] > div
-                  border: 1px solid $app-border-grey
-                  > div.true
-                    background-color: $tomitribe-orange
-                    i
-                      font-size: 13px
 
+div.CodeMirror
+  height: 200px
+  border: 1px $app-border-grey solid
+  padding: 0
+  margin-top: 17px
+  .CodeMirror-code
+    font-size: 13px
+  .CodeMirror-linenumber
+    color: $app-text-gray
+    font-size: 13px
+  .CodeMirror-linenumber
+    display: none
+.CodeMirror pre
+  color: $app-text-gray
+.CodeMirror-gutters
+  display: none
+.CodeMirror-lines
+  padding: 8px 5px
 
 div.tribe-data-tribe-singleselect-available-body
   z-index: 14000

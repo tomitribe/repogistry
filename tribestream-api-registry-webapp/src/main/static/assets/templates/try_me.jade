@@ -259,29 +259,34 @@ div.try-me(data-app)
           div(ng-if="request.method === 'POST' || request.method === 'PUT' || request.$$forceBody")
             h2 Body
             ui-codemirror(ng-model="request.payload", ui-codemirror-opts="payloadOptions")
-          div.response(ng-if="response")
-            div
-              h2 Response
-              i.fa.fa-bolt
-              span(ng-if="response.status > 0" style="color: #34bc77") {{::response.status}}
-              span(ng-if="response.status > 0 && response.clientExecutionDurationMs >= 0")
-                i.fa.fa-exchange
-                span {{response.clientExecutionDurationMs}} ms
-              // div {{::response.statusDescription}}
+          div(ng-if="response")
+            div.response
+              div
+                h2 Response
+                div.icons
+                  span(ng-if="response.status > 0") {{::response.status}}
+                    i.fa.fa-bolt
+                  span(ng-if="response.status > 0 && response.clientExecutionDurationMs >= 0")
+                    i.fa.fa-exchange
+                    span {{response.clientExecutionDurationMs}} ms
+                  // div {{::response.statusDescription}}
+              div(ng-if="response.status > 0")
+                h2 Headers
+                div(ng-show="headers.length + pathParameters.length + queryParameters.length > 0")
+                  table
+                    thead
+                      tr
+                        th name
+                        th value
+                    tbody
+                      tr(ng-repeat="h in response.headers | orderBy:'h.name' track by $index")
+                        td {{h.name}}
+                        td {{h.value}}
             div(ng-if="response.status > 0")
-              div(ng-show="headers.length + pathParameters.length + queryParameters.length > 0")
-                table
-                  thead
-                    tr
-                      th name
-                      th value
-                  tbody
-                    tr(ng-repeat="h in response.headers | orderBy:'h.name' track by $index")
-                      td {{h.name}}
-                      td {{h.value}}
-            div(ng-if="response.status > 0")
+              h2 Body
               ui-codemirror(ng-model="response.payload", ui-codemirror-opts="payloadOptions")
             div(ng-if="response.status <= 0")
+              h2 Body
               ui-codemirror(ng-model="response.error", ui-codemirror-opts="payloadOptions")
           div(ng-if="responseStream")
             div(ng-if="!!responseStream.stats")
