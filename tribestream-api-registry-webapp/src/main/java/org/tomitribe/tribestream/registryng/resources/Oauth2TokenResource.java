@@ -26,6 +26,7 @@ import org.tomitribe.tribestream.registryng.security.oauth2.AccessTokenService;
 import org.tomitribe.tribestream.registryng.security.oauth2.Oauth2Configuration;
 import org.tomitribe.tribestream.registryng.service.serialization.CustomJacksonJaxbJsonProvider;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.json.Json;
@@ -77,13 +78,18 @@ public class Oauth2TokenResource {
 
     private JsonBuilderFactory jsonBuilderFactory = Json.createBuilderFactory(new HashMap<>());
 
-    private volatile SSLContext sslContext;
+    private SSLContext sslContext;
 
     @Getter
     @Setter
     @Builder
     public static class Oauth2Status {
         private boolean enabled;
+    }
+
+    @PostConstruct
+    private void load() throws GeneralSecurityException {
+        getSslContext();
     }
 
     @GET
@@ -107,12 +113,18 @@ public class Oauth2TokenResource {
                     .entity("No Oauth2 gateway configured")
                     .build();
         }
-        // TODO: Configure, set SSL Truststore or SSLContext etc.
+
         // TODO: Pool clients
         Client client = null;
         try {
-            client = ClientBuilder.newBuilder()
-                    .sslContext(getSslContext())
+            final ClientBuilder clientBuilder = ClientBuilder.newBuilder();
+            if (oauth2Config.getAuthServerUrl().startsWith("https")) {
+                clientBuilder.sslContext(getSslContext());
+                if (oauth2Config.getAcceptAllSsl()) {
+                    clientBuilder.hostnameVerifier((s, session) -> true);
+                }
+            }
+            client = clientBuilder
                     .build();
             if (oauth2Config.getClientId() != null && oauth2Config.getClientId().length() > 0) {
                 client.register(new BasicAuthFilter());
@@ -150,67 +162,88 @@ public class Oauth2TokenResource {
 
     private SSLContext getSslContext() throws GeneralSecurityException {
         if (sslContext == null) {
-            SSLContext newSslContext;
-            if (oauth2Config.getTlsProvider() != null) {
-                newSslContext = SSLContext.getInstance(oauth2Config.getTlsProtocol(), oauth2Config.getTlsProvider());
+            if (oauth2Config.getAcceptAllSsl()) {
+                sslContext = SSLContext.getInstance("SSL");
+                sslContext.init(null, new TrustManager[]{new X509TrustManager() {
+                    @Override
+                    public void checkClientTrusted(final X509Certificate[] x509Certificates, final String s) throws CertificateException {
+                        // no-op
+                    }
+
+                    @Override
+                    public void checkServerTrusted(final X509Certificate[] x509Certificates, final String s) throws CertificateException {
+                        // no-op
+                    }
+
+                    @Override
+                    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                        return null;
+                    }
+
+                }}, new java.security.SecureRandom());
             } else {
-                newSslContext = SSLContext.getInstance(oauth2Config.getTlsProtocol());
-            }
+                SSLContext newSslContext;
+                if (oauth2Config.getTlsProvider() != null) {
+                    newSslContext = SSLContext.getInstance(oauth2Config.getTlsProtocol(), oauth2Config.getTlsProvider());
+                } else {
+                    newSslContext = SSLContext.getInstance(oauth2Config.getTlsProtocol());
+                }
 
 
-            final KeyStore trustStore;
-            if (oauth2Config.getTrustStoreFileName() != null && oauth2Config.getTrustStoreFileName().length() > 0) {
-                if (oauth2Config.getTrustStoreType() == null) {
-                    if (oauth2Config.getTlsProvider() == null) {
-                        trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+                final KeyStore trustStore;
+                if (oauth2Config.getTrustStoreFileName() != null && oauth2Config.getTrustStoreFileName().length() > 0) {
+                    if (oauth2Config.getTrustStoreType() == null) {
+                        if (oauth2Config.getTlsProvider() == null) {
+                            trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+                        } else {
+                            trustStore = KeyStore.getInstance(KeyStore.getDefaultType(), oauth2Config.getTlsProvider());
+                        }
                     } else {
-                        trustStore = KeyStore.getInstance(KeyStore.getDefaultType(), oauth2Config.getTlsProvider());
+                        if (oauth2Config.getTlsProvider() == null) {
+                            trustStore = KeyStore.getInstance(oauth2Config.getTrustStoreType());
+                        } else {
+                            trustStore = KeyStore.getInstance(oauth2Config.getTrustStoreType(), oauth2Config.getTlsProvider());
+                        }
                     }
                 } else {
-                    if (oauth2Config.getTlsProvider() == null) {
-                        trustStore = KeyStore.getInstance(oauth2Config.getTrustStoreType());
-                    } else {
-                        trustStore = KeyStore.getInstance(oauth2Config.getTrustStoreType(), oauth2Config.getTlsProvider());
-                    }
+                    trustStore = null;
                 }
-            } else {
-                trustStore = null;
-            }
 
-            final TrustManagerFactory tmfactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-            tmfactory.init(trustStore);
+                final TrustManagerFactory tmfactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+                tmfactory.init(trustStore);
 
-            final TrustManager[] tms = tmfactory.getTrustManagers();
-            if (tms != null) {
-                for (int i = 0; i < tms.length; ++i) {
-                    final TrustManager mgr = tms[i];
-                    if (!X509TrustManager.class.isInstance(mgr)) {
-                        continue;
-                    }
-
-                    final X509TrustManager x509TrustManager = X509TrustManager.class.cast(mgr);
-                    tms[i] = new X509TrustManager() {
-                        @Override
-                        public void checkClientTrusted(final X509Certificate[] x509Certificates, final String s) throws CertificateException {
-                            x509TrustManager.checkClientTrusted(x509Certificates, s);
+                final TrustManager[] tms = tmfactory.getTrustManagers();
+                if (tms != null) {
+                    for (int i = 0; i < tms.length; ++i) {
+                        final TrustManager mgr = tms[i];
+                        if (!X509TrustManager.class.isInstance(mgr)) {
+                            continue;
                         }
 
-                        @Override
-                        public void checkServerTrusted(final X509Certificate[] x509Certificates, final String s) throws CertificateException {
-                            if (x509Certificates.length == 1) {
-                                x509TrustManager.checkServerTrusted(x509Certificates, s);
+                        final X509TrustManager x509TrustManager = X509TrustManager.class.cast(mgr);
+                        tms[i] = new X509TrustManager() {
+                            @Override
+                            public void checkClientTrusted(final X509Certificate[] x509Certificates, final String s) throws CertificateException {
+                                x509TrustManager.checkClientTrusted(x509Certificates, s);
                             }
-                        }
 
-                        @Override
-                        public X509Certificate[] getAcceptedIssuers() {
-                            return x509TrustManager.getAcceptedIssuers();
-                        }
-                    };
+                            @Override
+                            public void checkServerTrusted(final X509Certificate[] x509Certificates, final String s) throws CertificateException {
+                                if (x509Certificates.length == 1) {
+                                    x509TrustManager.checkServerTrusted(x509Certificates, s);
+                                }
+                            }
+
+                            @Override
+                            public X509Certificate[] getAcceptedIssuers() {
+                                return x509TrustManager.getAcceptedIssuers();
+                            }
+                        };
+                    }
                 }
+                newSslContext.init(null, tms, new SecureRandom());
+                sslContext = newSslContext;
             }
-            newSslContext.init(null, tms, new SecureRandom());
-            sslContext = newSslContext;
         }
         return sslContext;
     }

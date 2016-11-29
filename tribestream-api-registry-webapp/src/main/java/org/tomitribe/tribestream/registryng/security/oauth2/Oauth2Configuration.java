@@ -69,4 +69,9 @@ public class Oauth2Configuration {
     @ConfigProperty(name = "tribe.registry.oauth2.trustStoreType")
     private String trustStoreType;
 
+    @Inject
+    @Description("Accept any SSL connection")
+    @ConfigProperty(name = "tribe.registry.oauth2.ssl.force-accept", defaultValue = "false")
+    private Boolean acceptAllSsl;
+
 }
