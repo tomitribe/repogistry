@@ -80,7 +80,7 @@ div.try-me(data-app)
                     i.fa.fa-trash-o
                   h3 Token Type
                   div(data-tribe-text, data-value="request.oauth2.tokenType")
-              div
+              div.clear
                 div.oauth2add(ng-if="request.oauth2.$$client")
                   div(ng-click="removeOAuth2Client();").trash
                     i.fa.fa-trash-o
@@ -259,10 +259,11 @@ div.try-me(data-app)
           div(ng-if="request.method === 'POST' || request.method === 'PUT' || request.$$forceBody")
             h2 Body
             ui-codemirror(ng-model="request.payload", ui-codemirror-opts="payloadOptions")
-          div(ng-if="response")
+          div.response(ng-if="response")
             div
               h2 Response
-              span(ng-if="response.status > 0") {{::response.status}}
+              i.fa.fa-bolt
+              span(ng-if="response.status > 0" style="color: #34bc77") {{::response.status}}
               span(ng-if="response.status > 0 && response.clientExecutionDurationMs >= 0")
                 i.fa.fa-exchange
                 span {{response.clientExecutionDurationMs}} ms
