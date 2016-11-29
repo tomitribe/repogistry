@@ -42,22 +42,22 @@ div.try-me(data-app)
               div
                 div.flexbin
                   h2 Execution Scenario
-              div
-                div(ng-click="removeScenario();").trash
-                  i.fa.fa-trash-o
+                  div
+                    div(ng-click="removeScenario();").trash
+                      i.fa.fa-trash-o
                 div
-                  div
-                    span Threads
+                  div.quarter
+                    h3 Threads
                     input(type="number", ng-model="request.scenario.threads")
-                  div
-                    span Execution Type
+                  div.quarter
+                    h3 Execution Type
                     div(data-tribe-singleselect, data-selected-option="request.scenario.$$useDuration",
                         data-available-options="[{text:'Iterations', value:false}, {text:'Duration', value:true}]")
-                  div(ng-if="!request.scenario.$$useDuration")
-                    span Iterations
+                  div.quarter(ng-if="!request.scenario.$$useDuration")
+                    h3 Iterations
                     input(type="number", ng-model="request.scenario.invocations")
-                  div(ng-if="!!request.scenario.$$useDuration")
-                    span Duration
+                  div.quarter(ng-if="!!request.scenario.$$useDuration")
+                    h3 Duration
                     input(type="number", ng-model="request.scenario.$$durationTime")
                     div(data-tribe-singleselect, data-selected-option="request.scenario.$$durationUnit",
                         data-available-options="[{text:'Minutes', value:'minutes'}, {text:'Seconds', value:'seconds'}]")
@@ -70,15 +70,15 @@ div.try-me(data-app)
                     div(ng-click="removeOAuth2();").trash
                       i.fa.fa-trash-o
                 h3 Token Endpoint
-                div(data-tribe-text, data-value="request.oauth2.endpoint", data-placeholder="Click to enter")
+                div.orange(data-tribe-text, data-value="request.oauth2.endpoint", data-placeholder="Click to enter", style="color: $tomitribe-orange")
               div
-                div
-                  span Header name
+                div.half
+                  h3 Header name
                   div(data-tribe-text, data-value="request.oauth2.header")
-                div(ng-if="!!request.oauth2.$$tokenType")
+                div.half(ng-if="!!request.oauth2.$$tokenType")
                   div(ng-click="removeOAuth2TokenType();").trash
                     i.fa.fa-trash-o
-                  span Token Type
+                  h3 Token Type
                   div(data-tribe-text, data-value="request.oauth2.tokenType")
               div
                 div.oauth2add(ng-if="request.oauth2.$$client")
@@ -101,10 +101,12 @@ div.try-me(data-app)
                     i(data-tribe-password-field, value="request.oauth2.password")
 
             div.form-line(ng-if="request.signature.$$show")
-              h2 Http Signature
               div
-                div(ng-click="removeSignature();").trash
-                  i.fa.fa-trash-o
+                div.flexbin
+                  h2 Http Signature
+                  div
+                    div(ng-click="removeSignature();").trash
+                      i.fa.fa-trash-o
                 div
                   div
                     h3 Header name
@@ -133,31 +135,34 @@ div.try-me(data-app)
                     div(ng-click="removeBasic();").trash
                       i.fa.fa-trash-o
                 div
-                  div.flexbin
+                  div.quarter
                     h3 Header name
                     div(data-tribe-text, data-value="request.basic.header")
-                  div.flexbin
+                  div.quarter
                     h3 Username
                     div(data-tribe-text, data-value="request.basic.username")
-                  div.flexbin
+                  div.quarter
                     h3 Password
                     i(data-tribe-password-field, value="request.basic.password")
 
             div.form-line(ng-if="request.digest.$$show")
-              h2 Payload digest
               div
-                div(ng-click="removeDigest();").trash
-                  i.fa.fa-trash-o
+                div.flexbin
+                  h2 Payload digest
+                  div
+                    div(ng-click="removeDigest();").trash
+                      i.fa.fa-trash-o
                 div
                   div.quarter
                     h3 Header name
                     div(data-tribe-text, data-value="request.digest.header")
                   div.quarter
                     h3 Algorithm
-                    ui-select(ng-model="request.digest.algorithm", placeholder="Digest algorithm", tagging, tagging-label="false", tagging-tokens="ENTER|,")
-                      ui-select-match(placeholder="Digest algorithm") {{$select.selected}}
-                      ui-select-choices(repeat="p in digestOptions | filter: $select.search track by $index")
-                        div {{p}}
+                    div.payload
+                      ui-select(ng-model="request.digest.algorithm", placeholder="Digest algorithm", tagging, tagging-label="false", tagging-tokens="ENTER|,")
+                        ui-select-match(placeholder="Digest algorithm") {{$select.selected}}
+                        ui-select-choices(repeat="p in digestOptions | filter: $select.search track by $index")
+                          div {{p}}
           div.parameters
             h2 Parameters
               tribe-dropdown(dropdown-direction='down', pull-direction='right', dropdown-trigger='dropdownClick', auto-close="true")
@@ -177,8 +182,8 @@ div.try-me(data-app)
                       th placement
                       th required
                       th.description description
-                      th values
-                      th(ng-if="request.signature.$$show") h3 Sign
+                      th.values values
+                      th(ng-if="request.signature.$$show") Sign
                       th
                   tbody
                     tr(ng-repeat="h in headers | orderBy:'h.name' track by $index")

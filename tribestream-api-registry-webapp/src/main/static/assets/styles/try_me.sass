@@ -7,8 +7,14 @@ div.header-try-me
   display: flex
   justify-content: space-between
   align-items: center
-  height: 28px
+  height: 92px
+  width: 100%
+  position: fixed
+  background-color: $app-white
+  z-index: 49
   .breadcrumb
+    margin-top: 27px
+    position: absolute
     *
       margin: 0 10px 0 0
       color: #c1c2c4
@@ -55,6 +61,11 @@ div.header-try-me
 div.page-header
   border-bottom: 1px solid #ebebeb
   height: 67px
+  top: 92px
+  background-color: $app-white
+  width: 100%
+  position: fixed
+  z-index: 50
   div.header-container
     padding: 17px 50px
     display: flex
@@ -70,18 +81,26 @@ div.page-header
     div.bolt-button
       align-self: flex-end
       position: relative
-      bottom: -29px
-      right: 50px
+      right: 150px
+      position: absolute
+      z-index: 60
+      top: 46px
       .fab .fab-actions-down
-        z-index: 2
+        z-index: 65
+        position: absolute
     div.header-menu
       align-self: flex-end
       display: flex
+      position: absolute
+      right: 25px
+      z-index: 80
+      top: 12px
       div.dropdown
         div.dropdown-list
           font-family: $app-font-body
           font-size: 13px
-          z-index: 0
+          z-index: 1000
+          position: absolute
           .item
             color: $app-text-gray
             padding: 5px 10px
@@ -90,7 +109,7 @@ div.page-header
               color: $app-white
 
 article.try-me
-  padding: 20px 50px
+  padding: 184px 50px 20px 50px
   div.form
     div
       h2
@@ -104,6 +123,8 @@ article.try-me
         color: $tomitribe-orange
         font-family: $app-font-body
         border-radius: 3px
+        width: 100%
+        max-width: 500px
       [data-tribe-singleselect-selected] > div div.edit-icon
         color: $app-icon-gray
         font-size: 11px
@@ -150,6 +171,13 @@ article.try-me
             width: 25%
             float: left
             padding-right: 20px
+      div
+        div.half
+          width: 50%
+          float: left
+          padding-right: 20px
+          &:nth-child(2)
+            padding-right: 0
         h3
           font-size: 13px
           color: $app-black
@@ -227,6 +255,16 @@ article.try-me
       div
         table
           width: 100%
+          margin-top: 25px
+          margin-bottom: 40px
+          .selectize-control
+            width: 100%
+          .selectize-control.single .selectize-input
+            max-width: 150px
+            &.open
+              max-width: 150px
+          .selectize-control.single > .selectize-dropdown
+            max-width: 150px
           thead
             background-color: #F9F9F9
             //display: flex
@@ -243,6 +281,8 @@ article.try-me
                 text-transform: uppercase
                 padding: 14px 0 12px 0
                 text-align: left
+                &:first-child
+                  min-width: 150px
           tbody
             tr
               border-bottom: 1px solid #EEEEEE
@@ -251,7 +291,17 @@ article.try-me
                 font-size: 13px
                 color: $app-text-gray
                 padding: 12px 0
-
+                i.fa.fa-trash-o
+                  color: $app-white
+                  background-color: $app-button-grey
+                  padding: 5px
+                  border-radius: 3px
+                  font-size: 12px
+                  margin-top: 5px
+                  &:hover
+                    background-color: $app-black
+                .selectize-control.single.direction-up > .selectize-dropdown
+                  top: -47px !important
 
 div.tribe-data-tribe-singleselect-available-body
   z-index: 14000

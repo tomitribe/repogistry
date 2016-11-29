@@ -1,0 +1,75 @@
+@import "variables"
+
+.selectize-control.single .selectize-input
+  border: 1px $app-white solid
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0)
+  color: $app-text-gray
+  padding: 10px 12px 4px 12px
+  height: auto
+  font-size: $app-font-size
+  line-height: 1.7 !important
+  min-height: 37px
+  &:hover
+    border: 1px $app-input-border-color solid
+  &.selectize-focus
+    border: 1px $app-input-border-color solid
+    padding: 5px 12px 4px 12px
+
+.payload
+  .selectize-control.single .selectize-input
+    border: 1px $app-white solid
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0)
+    color: $app-text-gray
+    padding: 0 12px
+    height: auto
+    font-size: $app-font-size
+    line-height: 1.7 !important
+    min-height: 37px
+    &:hover
+      border: 1px $app-input-border-color solid
+    &.selectize-focus
+      border: 1px $app-input-border-color solid
+      padding: 5px 12px 4px 12px
+
+.selectize-control.single .selectize-input:after
+    border-color: $app-border-grey transparent transparent transparent
+    border-style: solid
+    border-width: 5px 5px 0
+    content: " "
+    display: block
+    height: 0
+    margin-top: -3px
+    position: absolute
+    right: 15px
+    top: 50%
+    width: 0
+    &:hover
+      opacity: 1
+
+.selectize-input.selectize-focus
+    border-color: $app-border-grey !important
+
+.selectize-control.single.open > .selectize-input
+    padding: 0 12px 0 12px
+    border-color: $app-border-grey !important
+
+.selectize-control.single > .selectize-dropdown
+    padding: 8px 6px 5px 6px
+    border-radius: 0 0 2px 2px
+    border-color: $app-border-grey
+    margin: 0
+    box-shadow: none
+
+.selectize-control.open > .selectize-dropdown
+      > .selectize-input
+        border: 1px $app-border-grey solid
+
+.selectize-control.single.direction-up > .selectize-dropdown
+    border-radius: 2px 2px 0 0
+    border-top: 1px solid $app-border-grey
+    transform: translateY(5px)
+    top: -219px !important
+
+.selectize-control.single > .selectize-dropdown .active
+  background-color: $tomitribe-orange
+  color: $app-white
