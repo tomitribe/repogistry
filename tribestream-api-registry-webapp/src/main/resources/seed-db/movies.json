@@ -4,11 +4,12 @@
     "version" : "1.0",
     "title" : "Movie API"
   },
+  "host" : "ec2-35-161-253-218.us-west-2.compute.amazonaws.com",
   "basePath" : "/movie/rest",
   "tags" : [ {
     "name" : "movie"
   } ],
-  "schemes" : [ "http", "https" ],
+  "schemes" : [ "https" ],
   "paths" : {
     "/movies" : {
       "get" : {
@@ -40,6 +41,9 @@
           "required" : false,
           "type" : "string"
         } ],
+        "x-tribestream-api-registry": {
+          "auth-methods": ["HTTP Signatures"]
+        },
         "responses" : {
           "200" : {
             "description" : "successful operation",
@@ -67,6 +71,9 @@
             "$ref" : "#/definitions/Movie"
           }
         } ],
+        "x-tribestream-api-registry": {
+          "auth-methods": ["HTTP Signatures"]
+        },
         "responses" : {
           "200" : {
             "description" : "successful operation",
@@ -95,6 +102,9 @@
           "required" : false,
           "type" : "string"
         } ],
+        "x-tribestream-api-registry": {
+          "auth-methods": ["HTTP Signatures"]
+        },
         "responses" : {
           "200" : {
             "description" : "successful operation",
@@ -120,6 +130,9 @@
           "type" : "integer",
           "format" : "int64"
         } ],
+        "x-tribestream-api-registry": {
+          "auth-methods": ["HTTP Signatures"]
+        },
         "responses" : {
           "200" : {
             "description" : "successful operation",
@@ -144,6 +157,9 @@
             "$ref" : "#/definitions/Movie"
           }
         } ],
+        "x-tribestream-api-registry": {
+          "auth-methods": ["HTTP Signatures"]
+        },
         "responses" : {
           "200" : {
             "description" : "successful operation",
@@ -166,6 +182,9 @@
           "type" : "integer",
           "format" : "int64"
         } ],
+        "x-tribestream-api-registry": {
+          "auth-methods": ["HTTP Signatures"]
+        },
         "responses" : {
           "default" : {
             "description" : "successful operation"
