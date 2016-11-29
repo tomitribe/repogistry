@@ -178,7 +178,8 @@ export class TryMeController {
           header: 'Authorization',
           headers: ['(request-target)'],
           algorithm: 'hmac-sha256',
-          $$show: true
+          $$show: true,
+          $$requestTarget: true
         };
       }
     }, {
@@ -320,7 +321,6 @@ export class TryMeController {
         header: 'Authorization',
         algorithm: 'hmac-sha256',
         headers: ['(request-target)'],
-        $$requestTarget: true,
         // ui
         $$show: false
       },
