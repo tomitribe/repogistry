@@ -23,6 +23,7 @@ import io.swagger.models.HttpMethod;
 import io.swagger.models.Operation;
 import io.swagger.models.Path;
 import io.swagger.models.Swagger;
+import io.swagger.models.parameters.Parameter;
 import org.hibernate.envers.AuditReader;
 import org.hibernate.envers.AuditReaderFactory;
 import org.hibernate.envers.query.AuditEntity;
@@ -50,6 +51,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -229,6 +231,10 @@ public class Repository {
         }
     }
 
+    public List<OpenApiDocument> findAllApplications() {
+        return em.createNamedQuery(OpenApiDocument.Queries.FIND_ALL, OpenApiDocument.class).getResultList();
+    }
+
     public List<OpenApiDocument> findAllApplicationsMetadata() {
         List<OpenApiDocument> result = em.createNamedQuery(OpenApiDocument.Queries.FIND_ALL_METADATA, OpenApiDocument.class)
                 .getResultList();
@@ -291,7 +297,8 @@ public class Repository {
             for (Map.Entry<String, Path> stringPathEntry : swagger.getPaths().entrySet()) {
                 final String path = stringPathEntry.getKey();
                 final Path pathObject = stringPathEntry.getValue();
-                for (Map.Entry<HttpMethod, Operation> httpMethodOperationEntry : pathObject.getOperationMap().entrySet()) {
+                for (Map.Entry<HttpMethod, Operation> httpMethodOperationEntry : pathObject.getOperationMap()
+                                                                                           .entrySet()) {
                     final String verb = httpMethodOperationEntry.getKey().name().toUpperCase();
                     final Operation operation = httpMethodOperationEntry.getValue();
 
@@ -306,7 +313,10 @@ public class Repository {
                     searchEngine.indexEndpoint(endpoint);
                 }
             }
+        } else {
+            searchEngine.indexApplication(document);
         }
+
         return document;
     }
 
@@ -314,20 +324,35 @@ public class Repository {
         return loginContext.getUsername();
     }
 
-    public Endpoint insert(final Endpoint endpoint, final String applicationId) {
-        OpenApiDocument application = findByApplicationId(applicationId);
-        application.getEndpoints().add(endpoint);
+    private void cleanup(Endpoint endpoint) {
+        // Semoving empty elements from list.
+        // Sometimes the json cannot be translated to an known object. For example,
+        // the json parser does not know what type of parametert "{}" represents,
+        // so it converts the empty json object into null.
+        final List<Parameter> parameters = endpoint.getOperation().getParameters();
+        if(parameters != null) {
+            endpoint.getOperation().setParameters(parameters.stream().filter(p -> p != null)
+                    .collect(Collectors.toList()));
+        }
+    }
 
+    public Endpoint insert(final Endpoint endpoint, final String applicationId) {
+        final OpenApiDocument application = findByApplicationId(applicationId);
         endpoint.setApplication(application);
-        Date now = new Date();
+        final Date now = new Date();
         endpoint.setCreatedAt(now);
         endpoint.setUpdatedAt(now);
         endpoint.setCreatedBy(getUser());
         endpoint.setUpdatedBy(getUser());
-
+        cleanup(endpoint);
         application.setUpdatedAt(now);
         application.setUpdatedBy(getUser());
         em.persist(endpoint);
+
+        // Deletes Empty Application from ES, because the Endpoint is going to replace it.
+        // Only needed when adding the first Endpoint.
+        searchEngine.deleteApplication(application);
+        application.setElasticsearchId(null);
         update(application);
 
         em.flush();
@@ -356,12 +381,20 @@ public class Repository {
         return result;
     }
 
-    public OpenApiDocument update(OpenApiDocument document) {
+    public OpenApiDocument update(final OpenApiDocument document) {
         document.setUpdatedAt(new Date());
         document.setUpdatedBy(loginContext.getUsername());
         if (document.getSwagger() != null) {
             document.setDocument(convertToJson(document.getSwagger()));
         }
+        // Only need to reindex when the Application is Empty. The Application is Empty when exists in ES,
+        // meaning that the elasticSearchId is not null.
+        if (document.getElasticsearchId() != null) {
+            searchEngine.indexApplication(document);
+        } else {
+            document.getEndpoints().stream().forEach(endpoint -> searchEngine.indexEndpoint(endpoint));
+        }
+
         return em.merge(document);
     }
 
@@ -369,6 +402,7 @@ public class Repository {
         endpoint.setUpdatedAt(new Date());
         endpoint.setUpdatedBy(loginContext.getUsername());
         if (endpoint.getOperation() != null) {
+            cleanup(endpoint);
             endpoint.setDocument(convertToJson(endpoint.getOperation()));
         }
         searchEngine.indexEndpoint(endpoint);
@@ -391,6 +425,7 @@ public class Repository {
             return false;
         } else {
             ofNullable(document.getEndpoints()).ifPresent(e -> e.forEach(searchEngine::deleteEndpoint));
+            searchEngine.deleteApplication(document);
             em.remove(document);
             return true;
         }
@@ -403,6 +438,13 @@ public class Repository {
         } else {
             searchEngine.deleteEndpoint(endpoint);
             em.remove(endpoint);
+            em.flush();
+
+            final OpenApiDocument document = findByApplicationIdWithEndpoints(applicationId);
+            if (document.getEndpoints().isEmpty()) {
+                searchEngine.indexApplication(document);
+            }
+
             return true;
         }
     }

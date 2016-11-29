@@ -34,15 +34,21 @@ div[data-app-endpoints-details-header]
             font-style: normal
             color: #000000
             font-size: 25px !important
+            &.mandatory
+              vertical-align: super !important
+              font-size: 9px !important
+              margin-left: 2px
+              align-self: flex-start
         div.value span, a, div[data-tribe-text] input, div[data-tribe-text] span
           font-size: 25px !important
           font-weight: 600 !important
           margin-right: 5px
+          &.empty
+            font-weight: 700 !important
+            margin-right: 0
           max-width: none !important
           &:last-of-type
             margin-right: 0
-        div[data-tribe-text] span.empty
-          font-weight: 100 !important
         div.value span
           margin-right: 5px !important
           color: #000000
@@ -52,6 +58,11 @@ div[data-app-endpoints-details-header]
             input
               margin: 12px 0
         div[data-tribe-text]
+          span.mandatory
+            vertical-align: super !important
+            font-size: 9px !important
+            margin-left: 2px
+            align-self: flex-start
           &.active
             input
               margin: 4px 0
@@ -83,8 +94,9 @@ div[data-app-endpoints-details-header]
         color: $text-color
     span.empty
       color: lighten($app-placeholder-color, 50%)
-      font-weight: 100 !important
+      font-weight: 700 !important
       font-style: italic !important
+
 
 div.endpoint-details-path-tip
   p
