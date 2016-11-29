@@ -39,3 +39,18 @@ div[data-app-header]
         &:first-child
           margin-left: 0
 
+.try-me
+  div[data-app-header] > header
+    position: fixed
+    width: 100%
+    z-index: 500
+    a
+      position: absolute
+    > div:first-of-type
+      position: relative
+      margin-left: 80px
+      height: 55px
+    > div:last-of-type
+      position: absolute
+      right: 0
+      height: 55px
