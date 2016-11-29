@@ -1,31 +1,33 @@
 @import "variables"
 
 i[data-tribe-switch]
-  $component-width: 60px
-  $component-height: 25px
+  $component-width: 31px
+  $component-height: 15px
   $indicator-width: $component-height
   span
     font-style: normal
+    color: $app-button-grey
+    font-size: 13px
   > div
-    height: $component-height
+    height: 33px
     border-radius: $component-height / 2
     display: flex
     align-items: center
     > input
       display: none
       &:checked + span + div
-        background-color: lighten($tomitribe-orange, 20%)
+        background-color: #f6c7a8
         > div
           left: $component-width - $indicator-width
           background-color: $tomitribe-orange
-          box-shadow: 0 0 3px 3px transparentize($tomitribe-orange, .5)
+          box-shadow: 2px 3px 3px 1px transparentize(#ccc, .45)
         & + span
           color: $tomitribe-orange
     > div
       position: relative
       border-radius: $component-height / 2
       background-color: #e5e5e5
-      height: 100%
+      height: $component-height
       width: $component-width
       margin: 0 10px
       &:hover
@@ -35,8 +37,7 @@ i[data-tribe-switch]
         left: 0
         transition: left .15s ease-out
         background-color: #f1eff0
-        width: $indicator-width
-        height: 100%
+        width: $component-height
+        height: $component-height
         border-radius: $component-height / 2
-        box-shadow: 0 0 3px 3px transparentize(#ccc, .5)
-
+        box-shadow: 2px 3px 3px 1px transparentize(#ccc, .45)
