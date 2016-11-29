@@ -261,12 +261,8 @@ angular.module('tribe-endpoints-details', [
                     }
                     $timeout(function () {
                         $scope.$apply(function () {
-                            params.unshift({
-                                type: 'string',
-                                style: 'query',
-                                sampleValues: '',
-                                required: false
-                            });
+                            // add empry object
+                            params.unshift({});
                             $scope.params = params;
                         });
                     });
@@ -523,12 +519,11 @@ angular.module('tribe-endpoints-details', [
       'requestMetadata': '='
     },
     controller: [
-      '$scope', 'tribeEndpointsService', 'tribeFilterService', '$timeout', '$filter', '$log', '$location', 'systemMessagesService', 'tribeLinkHeaderService',
-      function ($scope, srv, tribeFilterService, $timeout, $filter, $log, $location, systemMessagesService, tribeLinkHeaderService) {
+      '$scope', 'tribeEndpointsService', 'tribeFilterService', '$timeout', '$filter', '$log', '$location', '$route', 'systemMessagesService', 'tribeLinkHeaderService',
+      function ($scope, srv, tribeFilterService, $timeout, $filter, $log, $location, $route, systemMessagesService, tribeLinkHeaderService) {
         $scope.isSaveable = () => {
           return !$scope['isOnEdit'] && !!$scope['endpoint'] && !!$scope['endpoint']['httpMethod'] && !!$scope['endpoint']['path'] && !!$scope['endpoint']['path'].trim();
         };
-
         $scope['onEditCount'] = {};
         $scope['onEditModeOn'] = (uniqueId) => $timeout(() => $scope.$apply(() => {
             $scope['onEditCount'][uniqueId] = {};
@@ -614,6 +609,19 @@ angular.module('tribe-endpoints-details', [
             if (!!$scope.endpoint.endpointProtocol) {
               $scope.endpoint.operation.schemes = [$scope.endpoint.endpointProtocol];
             }
+            if(!!$scope.endpoint.operation['x-tribestream-api-registry'] && !!$scope.endpoint.operation['x-tribestream-api-registry'].sees) {
+              $scope.endpoint.operation['x-tribestream-api-registry'].sees =
+                  $scope.endpoint.operation['x-tribestream-api-registry'].sees.filter(v=>!!v.href);
+            }
+            let reload = (resp) => {
+              let res = resp.data;
+              let app = $scope['application'];
+              let appName = app['humanReadableName'];
+              let path = $filter('pathencode')(res.path);
+              $location.path(`endpoint/${appName}/${res.httpMethod}${path}`);
+              // force page refresh
+              $route.reload();
+            };
             if ($scope.endpointLink) {
               srv.saveEndpoint($scope.endpointLink, {
                 // Cannot simply send the endpoint object because it's polluted with errors and expectedValues
@@ -623,7 +631,7 @@ angular.module('tribe-endpoints-details', [
               }).then(
                 function (saveResponse) {
                   systemMessagesService.info("Saved endpoint details!");
-                  $scope.reloadHistory();
+                  reload(saveResponse);
                 }, handleError
               );
             } else {
@@ -635,10 +643,7 @@ angular.module('tribe-endpoints-details', [
               }).then(
                 function (saveResponse) {
                   systemMessagesService.info("Created new endpoint! " + saveResponse.status);
-                  let res = saveResponse.data;
-                  let app = $scope['application'];
-                  let appName = app['humanReadableName'];
-                  $location.path(`endpoint/${appName}/${res.httpMethod}/${res.path}`);
+                  reload(saveResponse);
                 }, handleError
               );
             }
@@ -647,6 +652,9 @@ angular.module('tribe-endpoints-details', [
             srv.delete($scope.endpointLink).then((response) => {
                 systemMessagesService.info("Deleted endpoint!");
                 $location.path("/application/" + $scope.requestMetadata.applicationName);
+                // force page reload after removing an item. This way we make sure to reload the application page
+                // with the good existing endpoints.
+                $route.reload();
             });
           };
           $scope.reloadHistory = () => {

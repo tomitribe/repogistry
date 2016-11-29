@@ -23,6 +23,7 @@ import io.swagger.models.Swagger;
 import org.apache.openejb.testing.Application;
 import org.apache.tomee.embedded.TomEEEmbeddedApplicationRunner;
 import org.apache.tomee.embedded.junit.TomEEEmbeddedSingleRunner;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -69,6 +70,11 @@ public class RegistryResourceTest {
     @Inject
     @Tribe
     private ObjectMapper objectMapper;
+
+    @After
+    public void reset() {
+        registry.restoreData();
+    }
 
     @Test
     @Retry
