@@ -73,6 +73,7 @@ import static org.tomitribe.util.Join.join;
         @ContainerProperties.Property(name = "tribe.registry.elasticsearch.base", value = "http://localhost:${test.elasticsearch.port}"),
         @ContainerProperties.Property(name = "tribe.registry.monitoring.http.urls", value = "http://localhost:${test.elasticsearch.port}"),
         @ContainerProperties.Property(name = "tribe.registry.seeding.location", value = "seed-db"),
+        @ContainerProperties.Property(name = "tribe.registry.ui.try-me.oauth2.default-endpoint", value = "http://localhost:12/notexisting/oauth/token"),
         @ContainerProperties.Property(
                 name = "tribe.registry.security.filter.whitelist",
                 value = "/api/server/info,/api/login,/api/security/oauth2,/api/security/oauth2/status,/api/mock/oauth2/token,/api/try/invoke/stream,/api/try/download")
