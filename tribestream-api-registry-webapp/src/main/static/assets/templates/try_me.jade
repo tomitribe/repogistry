@@ -15,7 +15,7 @@ div.try-me(data-app)
         div.page-title
           a(x-ng-href="endpoint/{{endpointUrlInfo.applicationName}}/{{endpointUrlInfo.verb}}/{{endpointUrlInfo.endpointPath}}?version={{endpointUrlInfo.version || ''}}")
           h2.title {{endpointUrlInfo.verb}} {{endpointUrlInfo.endpointPath}} {{endpointUrlInfo.version || ''}}
-        div.bolt-button
+        div.bolt-button(ng-show="!request.scenario.$$executing")
           tribe-fab(fab-direction='down' fab-trigger='fabClick' opened-status='addButtonStatus')
             tribe-fab-trigger
               tribe-button(tribe-size='l', tribe-type='fab')
@@ -24,6 +24,12 @@ div.try-me(data-app)
               tribe-button(ng-repeat="opt in mainMenuOptions", tribe-size='m', tribe-type='fab', href="#", ng-click="onPickerSelect(opt);$dropdown.close();")
                 i(class="fa {{opt.icon}}")
                 div.text {{opt.displayName}}
+        div.bolt-button(ng-show="request.scenario.$$executing")
+          tribe-fab
+            tribe-fab-trigger
+              tribe-button(tribe-size='l', tribe-type='fab' ng-click="stopScenarioExecution();")
+                i.fa.fa-stop
+
         div.header-menu
           tribe-dropdown(dropdown-direction='down', pull-direction='left', dropdown-trigger='dropdownClick', auto-close="true")
             tribe-dropdown-trigger

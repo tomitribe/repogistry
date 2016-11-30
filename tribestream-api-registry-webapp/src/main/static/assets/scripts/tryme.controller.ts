@@ -37,6 +37,14 @@ export class TryMeController {
       }
     };
 
+    $scope.stopScenarioExecution = () => {
+      console.log("Going to spot execution");
+
+      //TODO: to implement
+
+      $scope.request.scenario.$$executing = false;
+    };
+
     $scope.removeHeader = h => {
       $scope.headers = $scope.headers.filter(i => i.name != h.name);
     };
@@ -64,6 +72,8 @@ export class TryMeController {
     };
 
     $scope.tryIt = () => {
+      console.log("Executing");
+      $scope.request.scenario.$$executing = true;
       // convert headers, better than watching it which would be slow for no real reason
       $scope.request.headers = $scope.headers.filter(h => !!h.name && !!h.value).reduce((accumulator, e) => {
         accumulator[e.name] = e.value;
@@ -283,6 +293,7 @@ export class TryMeController {
       $scope.request.scenario.threads = 1;
       $scope.request.scenario.iterations = 1;
       $scope.request.scenario.duration = undefined;
+      $scope.request.scenario.$$executing = false;
     };
 
     tribeEndpointsService.getDetailsFromMetadata($scope.endpointUrlInfo).then(detailsResponse => {
@@ -352,7 +363,8 @@ export class TryMeController {
         // ui
         $$show: false,
         $$useDuration: false,
-        $$durationUnit: 'seconds'
+        $$durationUnit: 'seconds',
+        $$executing: false
       },
       // ui
       $$forceBody: false
