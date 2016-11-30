@@ -38,7 +38,7 @@ div.try-me(data-app)
             div.form-line
               h2 Request
               div(data-tribe-singleselect, data-editable="true", data-selected-option="request.url", data-placeholder="URL to request")
-            div.form-line(ng-if="request.scenario.$$show")
+            div.form-line.scenario(ng-if="request.scenario.$$show")
               div
                 div.flexbin
                   h2 Execution Scenario
@@ -59,8 +59,11 @@ div.try-me(data-app)
                   div.quarter(ng-if="!!request.scenario.$$useDuration")
                     h3 Duration
                     input(type="number", ng-model="request.scenario.$$durationTime")
+                  div.quarter(ng-if="!!request.scenario.$$useDuration")
+                    h3 &nbsp;
                     div(data-tribe-singleselect, data-selected-option="request.scenario.$$durationUnit",
-                        data-available-options="[{text:'Minutes', value:'minutes'}, {text:'Seconds', value:'seconds'}]")
+                    data-available-options="[{text:'Minutes', value:'minutes'}, {text:'Seconds', value:'seconds'}]")
+
             div.form-line(ng-if="request.oauth2.$$show")
               div
                 div.flexbin
@@ -335,13 +338,23 @@ div.try-me(data-app)
             div.response
               div
                 h2 Response
-                div.icons
-                  span(ng-if="response.status > 0") {{::response.status}}
-                    i.fa.fa-bolt
-                  span(ng-if="response.status > 0 && response.clientExecutionDurationMs >= 0")
-                    i.fa.fa-exchange
-                    span {{response.clientExecutionDurationMs}} ms
-                  // div {{::response.statusDescription}}
+                div.form
+                  div.form-line
+                    div
+                      div
+                        div.quarter
+                          h3 Status code
+                          div
+                            span(ng-if="response.status > 0") {{::response.status}}
+                        div.quarter
+                          h3 Status line
+                          div
+                            span(ng-if="response.status > 0 && response.clientExecutionDurationMs >= 0") {{::response.statusDescription}}
+                        div.quarter
+                          h3 Execution Time
+                          div
+                            span(ng-if="response.status > 0 && response.clientExecutionDurationMs >= 0") {{response.clientExecutionDurationMs}} ms
+
               div(ng-if="response.status > 0")
                 h2 Headers
                 div(ng-show="headers.length + pathParameters.length + queryParameters.length > 0")
