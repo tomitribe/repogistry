@@ -16,7 +16,7 @@ div.try-me(data-app)
           a(x-ng-href="endpoint/{{endpointUrlInfo.applicationName}}/{{endpointUrlInfo.verb}}/{{endpointUrlInfo.endpointPath}}?version={{endpointUrlInfo.version || ''}}")
           h2.title {{endpointUrlInfo.verb}} {{endpointUrlInfo.endpointPath}} {{endpointUrlInfo.version || ''}}
         div.bolt-button(ng-show="!request.scenario.$$executing")
-          tribe-fab(fab-direction='down' fab-trigger='fabClick' opened-status='addButtonStatus')
+          tribe-fab(fab-direction='down' fab-trigger='fabClick' opened-status='addButtonStatus', auto-close='true')
             tribe-fab-trigger
               tribe-button(tribe-size='l', tribe-type='fab')
                 i.fa.fa-bolt
