@@ -279,6 +279,9 @@ article.try-me
         table
           width: 100%
           margin-top: 25px
+          .selectize-input
+            height: auto !important
+
           .selectize-control
             width: 170px
           .selectize-control.single
@@ -452,19 +455,21 @@ div.CodeMirror
   border: 1px $app-border-grey solid
   padding: 0
   margin-top: 17px
+  background-color: #EFF0F1
+
   .CodeMirror-code
     font-size: 13px
   .CodeMirror-linenumber
     color: $app-text-gray
     font-size: 13px
-  .CodeMirror-linenumber
-    display: none
+    padding-top: 5px
+    padding-bottom: 5px
+
 .CodeMirror pre
   color: $app-text-gray
-.CodeMirror-gutters
-  display: none
+  padding: 5px
 .CodeMirror-lines
-  padding: 8px 5px
+  padding: 0 !important
 
 div.tribe-data-tribe-singleselect-available-body
   z-index: 14000
