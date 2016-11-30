@@ -1,6 +1,11 @@
 export class TryMeService {
   static $inject = ['$http'];
+
+  oauth2DefaultEndpoint: string;
+
   constructor(private $http) {
+    // keep it, only needed once per app run
+    this.$http.get('api/try/defaults').then(d => this.oauth2DefaultEndpoint = d.data.oauth2Endpoint);
   }
 
   crypt(value) {

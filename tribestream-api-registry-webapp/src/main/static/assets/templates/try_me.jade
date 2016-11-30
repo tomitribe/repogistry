@@ -155,7 +155,7 @@ div.try-me(data-app)
                     div(ng-if="!!opt.displayName").item {{::opt.displayName}}
                     div(ng-if="!opt.displayName").separator
             div
-              div(ng-show="headers.length + pathParameters.length + queryParameters.length > 0")
+              div(ng-show="(headers.length + pathParameters.length + queryParameters.length > 0) || request.digest.$$show || request.signature.$$show || request.oauth2.$$show || request.basic.$$show")
                 table
                   thead
                     tr
@@ -187,8 +187,8 @@ div.try-me(data-app)
                           ui-select-match(placeholder="Header value") {{$select.selected}}
                           ui-select-choices(repeat="p in (h.$$proposals || []) | filter:$select.search track by $index")
                             div {{p}}
-                      th(ng-if="request.signature.$$show")
-                        i(data-tribe-switch, data-value="h.$$useForSignature", data-change="onSignatureHeaderClick(h)")
+                      td(ng-if="request.signature.$$show")
+                        i(data-tribe-switch, data-value="h.$$useForSignature")
                       td
                         div
                           i.fa.fa-trash-o(ng-click="removeHeader(h);")
@@ -211,7 +211,7 @@ div.try-me(data-app)
                           ui-select-match(placeholder="Parameter value") {{$select.selected}}
                           ui-select-choices(repeat="p in [param.value] | filter:$select.search track by $index")
                             div {{p}}
-                      th(ng-if="request.signature.$$show")
+                      td(ng-if="request.signature.$$show")
                       td
                         div
                           i.fa.fa-trash-o(ng-click="removePathParameter(h);")
@@ -234,7 +234,7 @@ div.try-me(data-app)
                           ui-select-match(placeholder="Query parameter value") {{$select.selected}}
                           ui-select-choices(repeat="p in [param.value] | filter:$select.search track by $index")
                             div {{p}}
-                      th(ng-if="request.signature.$$show")
+                      td(ng-if="request.signature.$$show")
                       td
                         div
                           i.fa.fa-trash-o(ng-click="removeQueryParameter(h);")
@@ -257,8 +257,8 @@ div.try-me(data-app)
                       td
                         div
                           i oauth2
-                      th(ng-if="request.signature.$$show")
-
+                      td(ng-if="request.signature.$$show")
+                        i(data-tribe-switch, data-value="request.oauth2.$$useForSignature")
                       td
                         div
                           i.fa.fa-trash-o(ng-click="removeOAuth2();")
@@ -281,8 +281,7 @@ div.try-me(data-app)
                       td
                         div
                           i http signature
-                      th(ng-if="request.signature.$$show")
-
+                      td(ng-if="request.signature.$$show")
                       td
                         div
                           i.fa.fa-trash-o(ng-click="removeSignature();")
@@ -304,8 +303,8 @@ div.try-me(data-app)
                       td
                         div
                           i basic
-                      th(ng-if="request.signature.$$show")
-
+                      td(ng-if="request.basic.$$show")
+                          i(data-tribe-switch, data-value="request.basic.$$useForSignature")
                       td
                         div
                           i.fa.fa-trash-o(ng-click="removeBasic();")
@@ -330,8 +329,8 @@ div.try-me(data-app)
                             ui-select-match(placeholder="Digest algorithm") {{$select.selected}}
                             ui-select-choices(repeat="p in digestOptions | filter: $select.search track by $index")
                               div {{p}}
-                      th(ng-if="request.signature.$$show")
-
+                      td(ng-if="request.signature.$$show")
+                        i(data-tribe-switch, data-value="request.digest.$$useForSignature")
                       td
                         div
                           i.fa.fa-trash-o(ng-click="removeDigest();")

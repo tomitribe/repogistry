@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.apache.deltaspike.core.api.config.ConfigProperty;
 import org.tomitribe.auth.signatures.Signature;
@@ -86,6 +87,7 @@ public class GenericClientService {
     private String timeoutLiteral;
 
     @Inject
+    @Getter
     @Description("Default endpoint used for oauth2 request when not specified in the UI.")
     @ConfigProperty(name = "tribe.registry.ui.try-me.oauth2.default-endpoint")
     private String oauth2Endpoint;
