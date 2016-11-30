@@ -370,8 +370,12 @@ article.try-me
           margin-bottom: 29px
           padding: 0
           table
+            $first-column-width: 20%
+            $second-column-width: 99%
+
             width: 100%
             margin: 23px 0 40px 0
+            table-layout: fixed
             .selectize-control
               width: 170px
             .selectize-control.single
@@ -395,9 +399,10 @@ article.try-me
                   text-transform: uppercase
                   padding: 14px 0 12px 0
                   text-align: left
+                  width: $second-column-width
                   &:first-child
                     padding: 14px 20px 12px 8px
-                    width: 32%
+                    width: $first-column-width
             tbody
               tr
                 border-bottom: 1px solid #EEEEEE
@@ -408,6 +413,7 @@ article.try-me
                   padding: 12px 0
                   &:first-child
                     padding: 12px 0 12px 8px
+                    width: $first-column-width
                   i.fa.fa-trash-o
                     color: $app-white
                     background-color: $app-button-grey
@@ -419,7 +425,13 @@ article.try-me
                       background-color: $app-black
                   .selectize-control.single.direction-up > .selectize-dropdown
                     top: -47px !important
-                th
+
+                  &:nth-child(2)
+                    width: $second-column-width
+                    word-wrap: break-word
+                    display: inline-block
+
+            th
                   i[data-tribe-checkbox] > div
                     border: 1px solid $app-border-grey
                     > div.true
