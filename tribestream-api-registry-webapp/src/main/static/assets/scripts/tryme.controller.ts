@@ -294,7 +294,7 @@ export class TryMeController {
 
   private init() {
     const swagger = this.$scope.application.swagger;
-    const url = (this.$scope.endpoint.endpointProtocol || 'http') + '://' + swagger.host + (swagger.basePath === '/' ? '' : swagger.basePath) + this.$scope.endpoint.path;
+    const url = (swagger.schemes[0] || 'http') + '://' + swagger.host + (swagger.basePath === '/' ? '' : swagger.basePath) + this.$scope.endpoint.path;
     const parameters = ((this.$scope.endpoint.operation || {}).parameters || {});
     const querySample = parameters.filter(p => p['in'] === 'query' && !!p['name'])
       .reduce((acc, param) => acc + (!!acc ? '&' : '?') + param['name'] + '=' + this.sampleValue(param['type']), '');
