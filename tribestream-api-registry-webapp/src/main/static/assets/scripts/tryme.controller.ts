@@ -397,8 +397,13 @@ export class TryMeController {
     if (this.$scope.endpoint.operation.produces && this.$scope.endpoint.operation.produces.length) {
       this.$scope.headers.push({ name: 'Accept', value: this.$scope.endpoint.operation.produces[0], description: 'The payload mime type', type: 'string' });
     }
-    this.$scope.headerOptions = [ 'Content-Type', 'Accept', 'Date' ];
+    this.$scope.headerOptions = [];
     this.$scope.headers.forEach(h => this.$scope.headerOptions.push(h.name));
+    [ 'Content-Type', 'Accept', 'Date' ].forEach(o => {
+      if (undefined === _.find(this.$scope.headerOptions, i => i.toString().toLowerCase() == o.toLowerCase())) {
+        this.$scope.headerOptions.push(o);
+      }
+    });
 
     this.$scope.queryParameters = parameters.filter(p => p['in'] === 'query' && !!p['name'])
       .map(p => {
