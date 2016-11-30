@@ -88,7 +88,7 @@ export class TryMeController {
       $scope.responseStream = undefined;
 
       // check it is a scenario or a simple call
-      if ($scope.request.scenario && ($scope.request.scenario.threads > 1 || !!$scope.request.scenario.duration || $scope.request.scenario.invocations > 1)) {
+      if ($scope.request.scenario && ($scope.request.scenario.threads > 1 || (!!$scope.request.scenario.duration && $scope.request.scenario.$$useDuration) || $scope.request.scenario.invocations > 1)) {
         if(!window['EventSource']) {
           systemMessagesService.error('No Server Send Event support, use a browser support it please.');
           return;

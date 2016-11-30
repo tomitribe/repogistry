@@ -355,7 +355,7 @@ div.try-me(data-app)
                           div
                             span(ng-if="response.status > 0 && response.clientExecutionDurationMs >= 0") {{response.clientExecutionDurationMs}} ms
 
-            div
+            div.parameters
               div(ng-if="response.status > 0")
                 h2 Headers
                 div(ng-show="headers.length + pathParameters.length + queryParameters.length > 0")
