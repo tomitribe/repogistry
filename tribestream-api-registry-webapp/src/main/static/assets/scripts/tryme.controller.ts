@@ -74,6 +74,15 @@ export class TryMeController {
       if (!!$scope.request.signature.$$requestTarget && $scope.request.signature.headers.indexOf('(request-target)') < 0) {
         $scope.request.signature.headers.push('(request-target)');
       }
+      if (!!$scope.request.oauth2.$$useForSignature) {
+        $scope.request.signature.headers.push($scope.request.oauth2.header);
+      }
+      if (!!$scope.request.basic.$$useForSignature) {
+        $scope.request.signature.headers.push($scope.request.basic.header);
+      }
+      if (!!$scope.request.digest.$$useForSignature) {
+        $scope.request.signature.headers.push($scope.request.digest.header);
+      }
 
       // cleanup scenario model to enable duration case (GUI can have messed it up) and potentially convert duration to a parseable value
       if (!!$scope.request.scenario.$$useDuration) {
