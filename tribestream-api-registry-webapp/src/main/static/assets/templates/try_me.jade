@@ -355,6 +355,7 @@ div.try-me(data-app)
                           div
                             span(ng-if="response.status > 0 && response.clientExecutionDurationMs >= 0") {{response.clientExecutionDurationMs}} ms
 
+            div
               div(ng-if="response.status > 0")
                 h2 Headers
                 div(ng-show="headers.length + pathParameters.length + queryParameters.length > 0")
@@ -367,22 +368,27 @@ div.try-me(data-app)
                       tr(ng-repeat="h in response.headers | orderBy:'h.name' track by $index")
                         td {{h.name}}
                         td {{h.value}}
-            div(ng-if="response.status > 0")
-              h2 Body
-              ui-codemirror(ng-model="response.payload", ui-codemirror-opts="payloadOptions")
-            div(ng-if="response.status <= 0")
-              h2 Body
-              ui-codemirror(ng-model="response.error", ui-codemirror-opts="payloadOptions")
+
+            div
+              div(ng-if="response.status > 0")
+                h2 Body
+                ui-codemirror(ng-model="response.payload", ui-codemirror-opts="payloadOptions")
+
+            div
+              div(ng-if="response.status <= 0")
+                h2 Body
+                ui-codemirror(ng-model="response.error", ui-codemirror-opts="payloadOptions")
+
           div.parameters(ng-if="responseStream")
-            div(ng-if="!!responseStream.items")
+
+            div.parameters(ng-if="!!responseStream.items")
               div(ng-if="!responseStream.finished")
                 i(data-tribe-checkbox, data-value="responseStream.$$scrollOnOutput") Automatic scrolling
               div
-                h2 Responses Summary
-                div
+                h2
+                  Responses Summary
                   a(href="{{responseStream.csvLink}}", target="_blank")
-                    i.fa.fa-download
-                    | CSV
+                    i.fa.fa-download &nbsp; CSV
                 table
                   thead
                     tr
@@ -392,7 +398,8 @@ div.try-me(data-app)
                     tr(ng-repeat="h in responseStream.items track by $index")
                       td {{h.status}}
                       td {{h.clientExecutionDurationMs}}
-            div(ng-if="!!responseStream.stats")
+
+            div.parameters(ng-if="!!responseStream.stats")
               div
                 h2 Aggregated Report
                 table
@@ -410,7 +417,8 @@ div.try-me(data-app)
                       td {{responseStream.stats.min}}
                       td {{responseStream.stats.max}}
                       td {{responseStream.stats.average}}
-            div(ng-if="!!responseStream.stats")
+
+            div.parameters(ng-if="!!responseStream.stats")
               div
                 h2 Statistic per status
                 table
