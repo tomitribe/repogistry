@@ -373,7 +373,25 @@ div.try-me(data-app)
             div(ng-if="response.status <= 0")
               h2 Body
               ui-codemirror(ng-model="response.error", ui-codemirror-opts="payloadOptions")
-          div(ng-if="responseStream")
+          div.parameters(ng-if="responseStream")
+            div(ng-if="!!responseStream.items")
+              div(ng-if="!responseStream.finished")
+                i(data-tribe-checkbox, data-value="responseStream.$$scrollOnOutput") Automatic scrolling
+              div
+                h2 Responses Summary
+                div
+                  a(href="{{responseStream.csvLink}}", target="_blank")
+                    i.fa.fa-download
+                    | CSV
+                table
+                  thead
+                    tr
+                      th HTTP Status
+                      th Client Duration (ms)
+                  tbody
+                    tr(ng-repeat="h in responseStream.items track by $index")
+                      td {{h.status}}
+                      td {{h.clientExecutionDurationMs}}
             div(ng-if="!!responseStream.stats")
               div
                 h2 Aggregated Report
@@ -404,21 +422,3 @@ div.try-me(data-app)
                     tr(ng-repeat="i in responseStream.stats.$$countPerStatusArray | orderBy:'i.status' track by $index")
                       td {{i.status}}
                       td {{i.count}}
-            div(ng-if="!!responseStream.items")
-              div(ng-if="!responseStream.finished")
-                i(data-tribe-checkbox, data-value="responseStream.$$scrollOnOutput") Automatic scrolling
-              div
-                h2 Responses Summary
-                div
-                  a(href="{{responseStream.csvLink}}", target="_blank")
-                    i.fa.fa-download
-                    | CSV
-                table
-                  thead
-                    tr
-                      th HTTP Status
-                      th Client Duration (ms)
-                  tbody
-                    tr(ng-repeat="h in responseStream.items track by $index")
-                      td {{h.status}}
-                      td {{h.clientExecutionDurationMs}}
