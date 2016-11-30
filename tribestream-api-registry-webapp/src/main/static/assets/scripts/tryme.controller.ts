@@ -88,7 +88,7 @@ export class TryMeController {
       $scope.responseStream = undefined;
 
       // check it is a scenario or a simple call
-      if ($scope.request.scenario && ($scope.request.scenario.threads > 1 || !!$scope.request.scenario.duration || $scope.request.scenario.invocations > 1)) {
+      if ($scope.request.scenario && ($scope.request.scenario.threads > 1 || (!!$scope.request.scenario.duration && $scope.request.scenario.$$useDuration) || $scope.request.scenario.invocations > 1)) {
         if(!window['EventSource']) {
           systemMessagesService.error('No Server Send Event support, use a browser support it please.');
           return;
@@ -294,7 +294,7 @@ export class TryMeController {
 
   private init() {
     const swagger = this.$scope.application.swagger;
-    const url = (this.$scope.endpoint.endpointProtocol || 'http') + '://' + swagger.host + (swagger.basePath === '/' ? '' : swagger.basePath) + this.$scope.endpoint.path;
+    const url = (swagger.schemes[0] || 'http') + '://' + swagger.host + (swagger.basePath === '/' ? '' : swagger.basePath) + this.$scope.endpoint.path;
     const parameters = ((this.$scope.endpoint.operation || {}).parameters || {});
     const querySample = parameters.filter(p => p['in'] === 'query' && !!p['name'])
       .reduce((acc, param) => acc + (!!acc ? '&' : '?') + param['name'] + '=' + this.sampleValue(param['type']), '');
