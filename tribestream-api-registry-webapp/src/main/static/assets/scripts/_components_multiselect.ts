@@ -166,8 +166,10 @@ angular.module('website-components-multiselect', [
                     $scope['selectedItem'] = null;
                     $scope.newOpt = null;
                     $scope.availableOptions = _.clone($scope.originalAvailableOptions);
-                    for (let opt of $scope['selectedOptions']) {
-                        $scope.availableOptions = _.without($scope.availableOptions, opt);
+                    if ($scope['selectedOptions']) {
+                      for (let opt of $scope['selectedOptions']) {
+                          $scope.availableOptions = _.without($scope.availableOptions, opt);
+                      }
                     }
                     if ($scope['inputText'].trim()) {
                         $scope.availableOptions = _.filter($scope.availableOptions, (opt:string) => {
