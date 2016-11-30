@@ -207,7 +207,7 @@ export class TryMeController {
       displayName: 'Add Basic Auth',
       invoke: () => this.$scope.request.basic.$$show = true
     }, {
-      displayName: 'Add Payload Digesting',
+      displayName: 'Add Digest',
       invoke: () => this.$scope.request.digest.$$show = true
     }, {
       displayName: 'Add Scenario Configuration',
@@ -374,10 +374,23 @@ export class TryMeController {
 
     // we pre-fill all headers of the operation + accept/content-type if consumes/produces are there
     this.$scope.headers = parameters.filter(p => p['in'] === 'header' && !!p['name'])
-      .filter(p => 'content-type' !== p['name'] && 'accept' !== p['name'])
+      .filter(p => 'digest' !== (p['name'] || '').toLowerCase() && 'content-type' !== (p['name'] || '').toLowerCase() && 'accept' !== (p['name'] || '').toLowerCase())
       .map(p => {
         return { name: p['name'], value: this.sampleValue(p['type']), required: p.required || false, description: p.description, type: p.type };
       });
+    const authMethods = ((this.$scope.endpoint.operation['x-tribestream-api-registry'] || {})['auth-methods'] || []).map(e => e.toLowerCase());
+    if (authMethods.indexOf('http signatures') >= 0) {
+      this.$scope.request.signature.$$show = true;
+    }
+    if (authMethods.indexOf('bearer') >= 0) {
+      this.$scope.menuOptions[1].invoke();
+    }
+    if (authMethods.indexOf('basic') >= 0) {
+      this.$scope.request.basic.$$show = true;
+    }
+    if (_.find(parameters, p => p['in'] === 'header' && (p['name'] || '').toLowerCase() === 'digest') || authMethods.indexOf('digest') >= 0) {
+      this.$scope.request.digest.$$show = true;
+    }
     if (this.$scope.endpoint.operation.consumes && this.$scope.endpoint.operation.consumes.length) {
       this.$scope.headers.push({ name: 'Content-Type', value: this.$scope.endpoint.operation.consumes[0], description: 'The payload mime type', type: 'string' });
     }
