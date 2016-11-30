@@ -392,6 +392,7 @@
             <tribe.registry.oauth2.trustStore>${registry.oauth2.trustStore}</tribe.registry.oauth2.trustStore>
             <tribe.registry.oauth2.trustStoreType>${registry.oauth2.trustStoreType}</tribe.registry.oauth2.trustStoreType>
             <tribe.registry.seeding.script>${project.basedir}/src/dev/elasticsearch.js</tribe.registry.seeding.script>
+            <tribe.registry.seeding.location>${project.basedir}/src/main/resources/seed-db</tribe.registry.seeding.location>
             <m2.dir>${settings.localRepository}</m2.dir>
           </containerProperties>
           <users>

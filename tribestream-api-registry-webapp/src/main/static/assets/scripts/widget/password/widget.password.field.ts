@@ -2,7 +2,8 @@ export class TribePassword {
   restrict = 'A';
   template = require('./widget.password.field.pug');
   scope = {
-      value: "=value"
+      value: "=value",
+      placeholder: "@"
   };
   controller = ['$scope', function ($scope) {
     $scope.types = ['password', 'text'];
