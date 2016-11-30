@@ -376,26 +376,26 @@ export class TryMeController {
     this.$scope.headers = parameters.filter(p => p['in'] === 'header' && !!p['name'])
       .filter(p => 'content-type' !== p['name'] && 'accept' !== p['name'])
       .map(p => {
-        return { name: p['name'], value: this.sampleValue(p['type']), required: p.required || false, description: p.description };
+        return { name: p['name'], value: this.sampleValue(p['type']), required: p.required || false, description: p.description, type: p.type };
       });
     if (this.$scope.endpoint.operation.consumes && this.$scope.endpoint.operation.consumes.length) {
-      this.$scope.headers.push({ name: 'Content-Type', value: this.$scope.endpoint.operation.consumes[0] });
+      this.$scope.headers.push({ name: 'Content-Type', value: this.$scope.endpoint.operation.consumes[0], description: 'The payload mime type', type: 'string' });
     }
     if (this.$scope.endpoint.operation.produces && this.$scope.endpoint.operation.produces.length) {
-      this.$scope.headers.push({ name: 'Accept', value: this.$scope.endpoint.operation.produces[0] });
+      this.$scope.headers.push({ name: 'Accept', value: this.$scope.endpoint.operation.produces[0], description: 'The payload mime type', type: 'string' });
     }
     this.$scope.headerOptions = [ 'Content-Type', 'Accept', 'Date' ];
     this.$scope.headers.forEach(h => this.$scope.headerOptions.push(h.name));
 
     this.$scope.queryParameters = parameters.filter(p => p['in'] === 'query' && !!p['name'])
       .map(p => {
-        return { name: p['name'], value: this.sampleValue(p['type']), required: p.required || false, description: p.description };
+        return { name: p['name'], value: this.sampleValue(p['type']), required: p.required || false, description: p.description, type: p.type };
       });
     this.$scope.queryParameterOptions = this.$scope.queryParameters.map(h => h.name);
 
     this.$scope.pathParameters = parameters.filter(p => p['in'] === 'path' && !!p['name'])
       .map(p => {
-        return { name: p['name'], value: this.sampleValue(p['type']), required: p.required || false, description: p.description };
+        return { name: p['name'], value: this.sampleValue(p['type']), required: p.required || false, description: p.description, type: p.type };
       });
     this.$scope.pathParameterOptions = this.$scope.pathParameters.map(h => h.name);
 
