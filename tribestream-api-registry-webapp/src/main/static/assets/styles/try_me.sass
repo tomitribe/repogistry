@@ -171,14 +171,19 @@ article.try-me
             &:hover
               background-color: $app-black
         div.oauth2add
-          width: 50%
+          width: 100%
           float: left
           clear: both
+          display: flex
+          align-items: center
+          justify-content: flex-start
           div.quarter
-            width: 46%
+            width: 25%
             float: left
             padding-right: 20px
             margin-top: 10px
+          div.trash
+            align-self: center
         div
           div.quarter
             width: 25%
@@ -355,6 +360,7 @@ article.try-me
         span
           font-family: $app-font-body
           font-size: 13px
+          line-height: 1.7
           color: $app-text-gray
           padding: 12px 0
         div
