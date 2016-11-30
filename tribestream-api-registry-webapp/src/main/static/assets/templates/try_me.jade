@@ -95,7 +95,7 @@ div.try-me(data-app)
                     div(data-tribe-text, data-value="request.oauth2.clientId" data-placeholder="Click to enter")
                   div.quarter
                     h3 Client Secret
-                    i(data-tribe-password-field, value="request.oauth2.clientSecret")
+                    i(data-tribe-password-field, value="request.oauth2.clientSecret", data-placeholder="Client Secret")
                 div.oauth2add(ng-if="request.oauth2.$$resourceOwner")
                   div(ng-click="removeOAuth2ResourceOwner();").trash
                     i.fa.fa-trash-o
@@ -104,7 +104,7 @@ div.try-me(data-app)
                     div(data-tribe-text, data-value="request.oauth2.username" data-placeholder="Click to enter")
                   div.quarter
                     h3 Password
-                    i(data-tribe-password-field, value="request.oauth2.password")
+                    i(data-tribe-password-field, value="request.oauth2.password", data-placeholder="Password")
 
             div.form-line(ng-if="request.signature.$$show")
               div
@@ -125,7 +125,7 @@ div.try-me(data-app)
                     div(data-tribe-text, data-value="request.signature.alias" data-placeholder="Click to enter")
                   div.quarter
                     h3 KEY
-                    i(data-tribe-password-field, value="request.signature.secret")
+                    i(data-tribe-password-field, value="request.signature.secret", data-placeholder="Key")
                   div
                     h3 Request Target
                     i(data-tribe-switch, data-value="request.signature.$$requestTarget")
