@@ -20,6 +20,7 @@ package org.tomitribe.tribestream.registryng.service.threading;
 
 import org.apache.openejb.testing.Application;
 import org.apache.tomee.embedded.junit.TomEEEmbeddedSingleRunner;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -29,7 +30,9 @@ import javax.inject.Inject;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.lang.Thread.sleep;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class InvokerTest {
     @Application
@@ -41,20 +44,38 @@ public class InvokerTest {
     @Inject
     private Invoker invoker;
 
+    @Before
+    public void loadJvm() {
+        invoker.invoke(5, 0, "1 seconds", -1, () -> {}).await(); // ensure JVM is "hot" enough for this kind of test to pass
+    }
+
     @Test
     public void iterations() {
         final AtomicInteger total = new AtomicInteger();
-        invoker.invoke(5, 15, null, -1, total::incrementAndGet);
+        invoker.invoke(5, 15, null, -1, total::incrementAndGet).await();
         assertEquals(15, total.get());
     }
 
     @Test
     public void duration() {
-        invoker.invoke(5, 0, "1 seconds", -1, () -> {}); // ensure JVM is "hot" enough for this kind of test to pass
-
         final long start = System.currentTimeMillis();
-        invoker.invoke(5, 0, "10 seconds", -1, () -> {});
+        invoker.invoke(5, 0, "10 seconds", -1, () -> {}).await();
         final long end = System.currentTimeMillis();
         assertEquals(10, TimeUnit.MILLISECONDS.toSeconds(end - start), 4 /*yes 40% but 4s only, should be good enough*/);
+    }
+
+    @Test
+    public void cancel() {
+        final long start = System.currentTimeMillis();
+        final Invoker.Handle invoke = invoker.invoke(5, 0, "10 seconds", -1, () -> {
+        });
+        try {
+            sleep(1000);
+        } catch (final InterruptedException e) {
+            fail(e.getMessage());
+        }
+        invoke.cancel();
+        final long end = System.currentTimeMillis();
+        assertEquals(1, TimeUnit.MILLISECONDS.toSeconds(end - start), 4);
     }
 }

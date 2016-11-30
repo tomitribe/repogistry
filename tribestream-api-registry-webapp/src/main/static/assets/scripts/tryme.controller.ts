@@ -294,7 +294,8 @@ export class TryMeController {
 
   private init() {
     const swagger = this.$scope.application.swagger;
-    const url = (swagger.schemes[0] || 'http') + '://' + swagger.host + (swagger.basePath === '/' ? '' : swagger.basePath) + this.$scope.endpoint.path;
+    const url = (swagger.schemes && swagger.schemes.length ? swagger.schemes[0] || 'http' : 'http') + '://' +
+                    swagger.host + (swagger.basePath === '/' ? '' : swagger.basePath) + this.$scope.endpoint.path;
     const parameters = ((this.$scope.endpoint.operation || {}).parameters || {});
     const querySample = parameters.filter(p => p['in'] === 'query' && !!p['name'])
       .reduce((acc, param) => acc + (!!acc ? '&' : '?') + param['name'] + '=' + this.sampleValue(param['type']), '');
@@ -312,6 +313,7 @@ export class TryMeController {
       oauth2: {
         header: 'Authorization',
         grantType: 'password',
+        endpoint: this.tryMeService.oauth2DefaultEndpoint,
         // for the ui
         $$show: false,
         $$resourceOwner: false,

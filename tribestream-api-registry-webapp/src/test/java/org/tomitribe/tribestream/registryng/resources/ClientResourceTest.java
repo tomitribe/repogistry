@@ -30,12 +30,14 @@ import org.tomitribe.tribestream.registryng.test.Registry;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
@@ -307,6 +309,15 @@ public class ClientResourceTest {
         assertTrue(response.getPayload(), response.getPayload().contains("oauth2=awesome-token"));
         assertTrue(response.getPayload(), response.getPayload().contains("signature=" +
                 "Signature keyId=\"key\",algorithm=\"hmac-sha256\",headers=\"(request-target) date\",signature=\"niZ0RzylAhy4DtKNcUZl0441+gUxON9t9GVS+KMfOJk=\""));
+    }
+
+    @Test
+    public void defaults() {
+        final Map<String, String> values = registry.target()
+                .path("/api/try/defaults")
+                .request(APPLICATION_JSON_TYPE)
+                .get(new GenericType<Map<String, String>>() {});
+        assertEquals("http://localhost:12/notexisting/oauth/token", values.get("oauth2Endpoint"));
     }
 
     private String cipher(final Object data) {

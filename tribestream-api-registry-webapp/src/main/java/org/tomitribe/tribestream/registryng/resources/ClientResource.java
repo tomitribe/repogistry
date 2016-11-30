@@ -80,10 +80,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -104,6 +106,11 @@ public class ClientResource {
 
     @Resource(name = "registry/thread/invoker-pool")
     private ManagedExecutorService mes; // for request processing, NOT invocations, see Invoker
+
+    @Inject
+    @Description("How many errors are tolerated before closing the scenario based execution.")
+    @ConfigProperty(name = "tribe.registry.tryme.write-errors", defaultValue = "2")
+    private Integer toleratedWriteErrors;
 
     @Inject
     @Description("Default timeout for parallel invocation without a time constraint.")
@@ -182,6 +189,12 @@ public class ClientResource {
     @Path("crypt")
     public CryptoData crypto(final CryptoData data) {
         return new CryptoData(cryptoService.toUrlString(data.getData()));
+    }
+
+    @GET
+    @Path("defaults")
+    public Map<String, String> defaults() {
+        return ofNullable(service.getOauth2Endpoint()).map(e -> singletonMap("oauth2Endpoint", e)).orElse(emptyMap());
     }
 
     @GET // more portable way to do a download from a browser
@@ -277,6 +290,8 @@ public class ClientResource {
         }
 
         mes.submit(() -> {
+            final AtomicReference<Invoker.Handle> handleRef = new AtomicReference<>();
+
             try {
                 // we compute some easy stats asynchronously
                 final Map<Integer, AtomicInteger> sumPerResponse = new HashMap<>();
@@ -285,8 +300,14 @@ public class ClientResource {
                 final AtomicLong max = new AtomicLong();
                 final AtomicLong sum = new AtomicLong();
 
+                final AtomicInteger writeErrors = new AtomicInteger(0);
+
                 final long start = System.currentTimeMillis();
-                invoker.invoke(scenario.getThreads(), scenario.getInvocations(), scenario.getDuration(), timeout, () -> {
+                handleRef.set(invoker.invoke(scenario.getThreads(), scenario.getInvocations(), scenario.getDuration(), timeout, () -> {
+                    if (handleRef.get().isCancelled()) {
+                        return;
+                    }
+
                     LightHttpResponse resp;
                     try {
                         final GenericClientService.Response invoke = service.invoke(req);
@@ -305,8 +326,15 @@ public class ClientResource {
                                 out.write(dataEnd);
                                 out.flush();
                             } catch (final IOException e) {
+                                if (writeErrors.incrementAndGet() > toleratedWriteErrors) {
+                                    handleRef.get().cancel();
+                                }
                                 throw new IllegalStateException(e);
                             }
+                        }
+
+                        if (handleRef.get().isCancelled()) {
+                            return;
                         }
 
                         final long clientExecutionDurationMs = respRef.getClientExecutionDurationMs();
@@ -334,7 +362,10 @@ public class ClientResource {
                             } while (m < clientExecutionDurationMs);
                         }
                     }), true);
-                });
+                }));
+
+                handleRef.get().await();
+
                 final long end = System.currentTimeMillis();
 
                 do { // wait all threads finished to compute the stats
@@ -352,6 +383,10 @@ public class ClientResource {
                     }
                 } while (!computations.isEmpty());
 
+                if (handleRef.get().isCancelled()) {
+                    return;
+                }
+
                 try {
                     out.write(dataStart);
                     writerEnd.writeTo(new ScenarioEnd(
@@ -364,8 +399,12 @@ public class ClientResource {
                     throw new IllegalStateException(e);
                 }
             } finally {
-                // cxf will skip it since we already write ourself
-                asyncResponse.resume("");
+                try {
+                    // cxf will skip it since we already write ourself
+                    asyncResponse.resume("");
+                } catch (final RuntimeException re) {
+                    // no-op: not that important
+                }
             }
         });
     }
@@ -451,7 +490,7 @@ public class ClientResource {
         req.setHeaders(new HashMap<>(ofNullable(request.getHeaders()).orElse(emptyMap())));
 
         ofNullable(request.getOauth2())
-                .filter(o -> o.getEndpoint() != null && (o.getUsername() != null || o.getRefreshToken() != null))
+                .filter(o -> o.getUsername() != null || o.getRefreshToken() != null)
                 .ifPresent(o -> {
                     if (req.getHeaders().put(
                             ofNullable(o.getHeader()).orElse("Authorization"),
