@@ -132,12 +132,23 @@ article.try-me
         font-size: 11px
         background-color: $app-white
         border-left: 0
+
+    div.form-line
+      &.scenario
+        &.quarter
+          width: 25%
+
+
     div.form-line
       padding-bottom: 20px
       border-bottom: dotted $app-border-grey 2px
       margin-bottom: 29px
       display: inline-block
       width: 100%
+
+      .clear
+        clear: both
+
       div
         div.flexbin
           display: flex
@@ -162,6 +173,7 @@ article.try-me
         div.oauth2add
           width: 50%
           float: left
+          clear: both
           div.trash
             display: none
           div.quarter
@@ -324,37 +336,35 @@ article.try-me
 
   div
     div.response
+
+      div.form-line
+        padding-bottom: 0 !important
+        border-bottom: none !important
+        margin-bottom: 0 !important
+
+        .quarter:nth-child(1)
+          width: 15% !important
+
+        .quarter:nth-child(2)
+          width: 70% !important
+
+        .quarter:nth-child(3)
+          width: 15% !important
+
+        span
+          font-family: $app-font-body
+          font-size: 13px
+          color: $app-text-gray
+          padding: 12px 0
+        div
+          border-bottom: none
       div
-        &:first-child
-          padding-bottom: 20px
-          border-bottom: dotted $app-border-grey 2px
-          margin-bottom: 29px
-          display: flex
-          width: 100%
         h2
           font-size: $app-font-size-h2
           color: $app-black
           font-family: $app-font-title
           font-weight: $app-font-weight-h2
           text-transform: uppercase
-          flex: 1
-        div.icons
-          border-bottom: 0
-          padding-top: 8px
-          span
-            font-size: 13px
-            color: $app-black
-            font-family: $app-font-title
-            font-weight: $app-font-weight-h3
-            text-transform: uppercase
-            i.fa.fa-exchange
-              padding: 0 10px 0 10px
-              font-size: 18px
-              margin-top: -5px
-            i.fa.fa-bolt
-              float: left
-              padding: 0 4px 0 0
-              font-size: 15px
         div
           border-bottom: dotted $app-border-grey 2px
           margin-bottom: 29px
