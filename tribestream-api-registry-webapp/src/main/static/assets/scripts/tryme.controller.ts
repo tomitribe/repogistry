@@ -40,7 +40,7 @@ export class TryMeController {
     $scope.stopScenarioExecution = () => {
       console.log("Going to spot execution");
 
-      //TODO: to implement
+      $scope.request.scenario.$$executionHandler && $scope.request.scenario.$$executionHandler();
 
       $scope.request.scenario.$$executing = false;
     };
@@ -118,6 +118,7 @@ export class TryMeController {
           tryMeService.crypt({http:$scope.request, identity:header}).then(d => {
             let source = new window['EventSource']('api/try/invoke/stream?request=' + d);
             const onDone = () => {
+              $scope.request.scenario.$$executionHandler = undefined;
               source.close();
               $scope.responseStream.finished = true;
               tryMeService.crypt({data:$scope.responseStream.items, identity:header}).then(d => {
@@ -131,6 +132,7 @@ export class TryMeController {
                     '&data=' + d;
               });
             };
+            $scope.request.scenario.$$executionHandler = onDone;
             source.onerror = error => {
               onDone();
               $scope.$apply(() => systemMessagesService.error(JSON.stringify(error)));
