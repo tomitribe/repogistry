@@ -72,7 +72,6 @@ export class TryMeController {
     };
 
     this.$scope.tryIt = () => {
-      console.log("Executing");
       this.$scope.request.scenario.$$executing = true;
       // convert headers, better than watching it which would be slow for no real reason
       this.$scope.request.headers = this.$scope.headers.filter(h => !!h.name && !!h.value).reduce((accumulator, e) => {
@@ -160,6 +159,7 @@ export class TryMeController {
       } else {
         tryMeService.request(this.$scope.request)
           .success(result => {
+            this.$scope.request.scenario.$$executing = false;
             this.$scope.response = result;
             this.$scope.response.payloadOptions = this.$scope.payloadOptions;
             this.$scope.response.statusDescription = this.statusDescription(result.status);
