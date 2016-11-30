@@ -14,8 +14,8 @@
     "/movies" : {
       "get" : {
         "tags" : [ "movie" ],
-        "summary" : "Search Movies by a field and a searchTerm. The Search is paginated with first result and max results per page.",
-        "description" : "",
+        "summary" : "Search Movies.",
+        "description" : "Search Movies by a field and a searchTerm. The Search is paginated with first result and max results per page.",
         "operationId" : "getMovies",
         "produces" : [ "application/json" ],
         "parameters" : [ {
@@ -42,7 +42,11 @@
           "type" : "string"
         } ],
         "x-tribestream-api-registry": {
-          "auth-methods": ["HTTP Signatures"]
+          "apiVersion": "1.0.0",
+          "environment": "Production",
+          "auth-methods": ["HTTP Signatures", "Bearer"],
+          "rates" : [{"rateLimit": 5, "rateWindow": 1, "rateUnit": "MINUTES"}],
+          "status" : "Released"
         },
         "responses" : {
           "200" : {
@@ -59,7 +63,7 @@
       "post" : {
         "tags" : [ "movie" ],
         "summary" : "Add a Movie.",
-        "description" : "",
+        "description" : "Add a Movie with director, movie name, year, genre and rating into the Database.",
         "operationId" : "addMovie",
         "consumes" : [ "application/json" ],
         "produces" : [ "application/json" ],
@@ -72,7 +76,11 @@
           }
         } ],
         "x-tribestream-api-registry": {
-          "auth-methods": ["HTTP Signatures"]
+          "apiVersion": "1.0.0",
+          "environment": "Production",
+          "auth-methods": ["HTTP Signatures", "Bearer"],
+          "rates" : [{"rateLimit": 5, "rateWindow": 1, "rateUnit": "MINUTES"}],
+          "status" : "Released"
         },
         "responses" : {
           "200" : {
@@ -88,7 +96,7 @@
       "get" : {
         "tags" : [ "movie" ],
         "summary" : "Count the  Movies.",
-        "description" : "",
+        "description" : "Count the total number of Movies present in the Database.",
         "operationId" : "count",
         "produces" : [ "application/json" ],
         "parameters" : [ {
@@ -103,7 +111,11 @@
           "type" : "string"
         } ],
         "x-tribestream-api-registry": {
-          "auth-methods": ["HTTP Signatures"]
+          "apiVersion": "1.0.0",
+          "environment": "Production",
+          "auth-methods": ["HTTP Signatures", "Bearer"],
+          "rates" : [{"rateLimit": 5, "rateWindow": 1, "rateUnit": "MINUTES"}],
+          "status" : "Released"
         },
         "responses" : {
           "200" : {
@@ -119,8 +131,8 @@
     "/movies/{id}" : {
       "get" : {
         "tags" : [ "movie" ],
-        "summary" : "Find a Movie by the Id.",
-        "description" : "",
+        "summary" : "Find a Movie.",
+        "description" : "Find a Movie by the Database id.",
         "operationId" : "find",
         "produces" : [ "application/json" ],
         "parameters" : [ {
@@ -131,7 +143,11 @@
           "format" : "int64"
         } ],
         "x-tribestream-api-registry": {
-          "auth-methods": ["HTTP Signatures"]
+          "apiVersion": "1.0.0",
+          "environment": "Production",
+          "auth-methods": ["HTTP Signatures", "Bearer"],
+          "rates" : [{"rateLimit": 5, "rateWindow": 1, "rateUnit": "MINUTES"}],
+          "status" : "Released"
         },
         "responses" : {
           "200" : {
@@ -145,7 +161,7 @@
       "put" : {
         "tags" : [ "movie" ],
         "summary" : "Edit a Movie.",
-        "description" : "",
+        "description" : "Edit an existent Movie with director, movie name, year, genre and rating.",
         "operationId" : "editMovie",
         "consumes" : [ "application/json" ],
         "produces" : [ "application/json" ],
@@ -158,7 +174,11 @@
           }
         } ],
         "x-tribestream-api-registry": {
-          "auth-methods": ["HTTP Signatures"]
+          "apiVersion": "1.0.0",
+          "environment": "Production",
+          "auth-methods": ["HTTP Signatures", "Bearer"],
+          "rates" : [{"rateLimit": 5, "rateWindow": 1, "rateUnit": "MINUTES"}],
+          "status" : "Released"
         },
         "responses" : {
           "200" : {
@@ -171,8 +191,8 @@
       },
       "delete" : {
         "tags" : [ "movie" ],
-        "summary" : "Delete a Movie by the Id.",
-        "description" : "",
+        "summary" : "Delete a Movie.",
+        "description" : "Delete a Movie by the Database Id.",
         "operationId" : "deleteMovie",
         "produces" : [ "application/json" ],
         "parameters" : [ {
@@ -183,7 +203,11 @@
           "format" : "int64"
         } ],
         "x-tribestream-api-registry": {
-          "auth-methods": ["HTTP Signatures"]
+          "apiVersion": "1.0.0",
+          "environment": "Production",
+          "auth-methods": ["HTTP Signatures", "Bearer"],
+          "rates" : [{"rateLimit": 5, "rateWindow": 1, "rateUnit": "MINUTES"}],
+          "status" : "Released"
         },
         "responses" : {
           "default" : {
