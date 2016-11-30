@@ -24,7 +24,7 @@
     "angular-tomitribe-common": "0.0.3",
     "angular-tomitribe-button": "0.0.11",
     "angular-tomitribe-dropdown": "0.0.8",
-    "angular-tomitribe-fab": "0.0.6"
+    "angular-tomitribe-fab": "0.0.7"
   },
   "devDependencies": {
     "tough-cookie": "2.3.2",
