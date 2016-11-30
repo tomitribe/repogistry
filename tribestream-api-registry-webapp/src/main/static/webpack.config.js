@@ -8,6 +8,7 @@ module.exports = webpackMerge(commonConfig, {
     plugins: [
         new webpack.NoErrorsPlugin(),
         new webpack.optimize.DedupePlugin(),
+/* need some more love cause it looses the context sometimes and our code doesn't rely enough on "this"
         new webpack.optimize.UglifyJsPlugin({
           beautify: false,
           comments: false,
@@ -19,6 +20,7 @@ module.exports = webpackMerge(commonConfig, {
               except: ['angular', '$', 'exports', 'require']
           }
         }),
+*/
         new webpack.DefinePlugin({
             PRODUCTION: JSON.stringify(true)
         })
