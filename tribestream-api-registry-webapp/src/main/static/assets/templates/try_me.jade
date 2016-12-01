@@ -363,7 +363,7 @@ div.try-me(data-app)
               div(ng-if="response.status > 0")
                 h2 Headers
                 div(ng-show="headers.length + pathParameters.length + queryParameters.length > 0")
-                  table
+                  table.headers-table
                     thead
                       tr
                         th name
