@@ -87,12 +87,12 @@ var manage = function () {
         m2 + 'org/hdrhistogram/HdrHistogram/2.1.6/HdrHistogram-2.1.6.jar',
         m2 + 'org/joda/joda-convert/1.2/joda-convert-1.2.jar',
         m2 + 'org/yaml/snakeyaml/1.15/snakeyaml-1.15.jar'
-    ].join(props.getProperty('path.separator'));
-
-    // for debugging purposes: System.out.println('Elasticsearch classpath: ' + cp);
+    ].map(function (path) {
+        return new File(path).getAbsolutePath();
+    }).join(props.getProperty('path.separator'));
 
     var process = new ProcessBuilder([
-        props.getProperty('java.home') + '/bin/java',
+        new File(props.getProperty('java.home'), 'bin/java').getAbsolutePath(),
         '-Des.security.manager.enabled=false',
         '-Des.nodes=localhost',
         '-Des.path.home=' + home.getAbsolutePath(),
