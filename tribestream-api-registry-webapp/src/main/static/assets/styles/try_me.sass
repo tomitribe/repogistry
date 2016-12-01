@@ -349,13 +349,17 @@ article.try-me
         margin-bottom: 0 !important
 
         .quarter:nth-child(1)
-          width: 15% !important
+          width: 15%
+          font-size: 30px
+          font-weight: 700
 
         .quarter:nth-child(2)
-          width: 70% !important
+          width: 70%
 
         .quarter:nth-child(3)
-          width: 15% !important
+          width: 15%
+          font-size: 20px
+          font-weight: 700
 
         span
           font-family: $app-font-body
@@ -480,7 +484,12 @@ div.tribe-data-tribe-singleselect-available-body
 
 .headers-table
   tr
-    > td
-      width: 25%
+    > th
+      width: 15%
       &:last-of-type
-        width: 75%
+        width: 85%
+    > td
+      width: 15%
+      font-weight: bold
+      &:last-of-type
+        width: 85%
