@@ -346,7 +346,7 @@ div.try-me(data-app)
                   div.form-line
                     div
                       div
-                        div.quarter
+                        div.quarter.status-code
                           h3 Status code
                           div
                             span(ng-if="response.status > 0") {{::response.status}}
@@ -354,7 +354,7 @@ div.try-me(data-app)
                           h3 Status line
                           div
                             span(ng-if="response.status > 0 && response.clientExecutionDurationMs >= 0") {{::response.statusDescription}}
-                        div.quarter
+                        div.quarter.execution-time
                           h3 Execution Time
                           div
                             span(ng-if="response.status > 0 && response.clientExecutionDurationMs >= 0") {{response.clientExecutionDurationMs}} ms
