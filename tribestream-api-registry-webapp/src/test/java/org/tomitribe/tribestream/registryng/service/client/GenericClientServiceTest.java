@@ -123,7 +123,7 @@ public class GenericClientServiceTest {
     @Test
     public void signature() {
         assertEquals(
-                "Signature keyId=\"key\",algorithm=\"hmac-sha256\",headers=\"(request-target) date\",signature=\"OdYumDua8K9Nb/3PZvWdNxbZDTNl33JfObSE4tE/npg=\"",
+                "Signature keyId=\"key\",algorithm=\"hmac-sha256\",headers=\"(request-target) date\",signature=\"rmdaoJr8kAE3NWh6bdjWJpHX5PZ9Qp61MnTxdIV3kcg=\"",
                 client.httpSign(asList("(request-target)", "date"), "POST", "/foo/bar?q=u", "key", "chut", Algorithm.HMAC_SHA256.getJmvName(), new HashMap<String, String>() {{
                     put("date", new Date(0).toString()); // ensure test can be re-executed
                 }}));

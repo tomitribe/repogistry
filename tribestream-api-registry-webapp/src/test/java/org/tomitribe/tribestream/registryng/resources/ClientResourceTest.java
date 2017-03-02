@@ -147,7 +147,7 @@ public class ClientResourceTest {
         assertEquals("signature", header.getName());
         assertEquals(
                 "Signature keyId=\"key\",algorithm=\"hmac-sha256\",headers=\"(request-target) date\"," +
-                        "signature=\"niZ0RzylAhy4DtKNcUZl0441+gUxON9t9GVS+KMfOJk=\"", header.getValue());
+                        "signature=\"yPOJvoAefKk4g2XuCPtwA17Y2PxBtW3nLUs5drcpHyk=\"", header.getValue());
     }
 
     @Test
@@ -308,7 +308,7 @@ public class ClientResourceTest {
         assertTrue(response.getPayload(), response.getPayload().contains("basic=Basic dTpw"));
         assertTrue(response.getPayload(), response.getPayload().contains("oauth2=awesome-token"));
         assertTrue(response.getPayload(), response.getPayload().contains("signature=" +
-                "Signature keyId=\"key\",algorithm=\"hmac-sha256\",headers=\"(request-target) date\",signature=\"niZ0RzylAhy4DtKNcUZl0441+gUxON9t9GVS+KMfOJk=\""));
+                "Signature keyId=\"key\",algorithm=\"hmac-sha256\",headers=\"(request-target) date\",signature=\"yPOJvoAefKk4g2XuCPtwA17Y2PxBtW3nLUs5drcpHyk=\""));
     }
 
     @Test
