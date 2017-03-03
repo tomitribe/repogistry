@@ -35,9 +35,11 @@ import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
@@ -57,6 +59,11 @@ public class ClientResourceTest {
 
     @PersistenceContext
     private EntityManager em;
+
+    private static final Calendar CAL = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+    static {
+        CAL.setTimeInMillis(0);
+    }
 
     @Test
     public void executions() {
@@ -136,7 +143,7 @@ public class ClientResourceTest {
                     setMethod("GET");
                     setUrl(registry.root() + "/api/spy");
                     setRequestHeaders(new HashMap<String, String>() {{
-                        put("Date", new Date(0).toString()); // ensure test can be re-executed
+                        put("Date", CAL.getTime().toString()); // ensure test can be re-executed
                     }});
                     setHeaders(asList("(request-target)", "date"));
                     setHeader("signature");
@@ -171,7 +178,7 @@ public class ClientResourceTest {
         request.setUrl(registry.root() + "/api/spy");
         request.setHeaders(new HashMap<String, String>() {{
             put("Authorization", registry.basicHeader());
-            put("Date", new Date(0).toString()); // ensure test can be re-executed
+            put("Date", CAL.getTime().toString()); // ensure test can be re-executed
         }});
         request.setDigest(new ClientResource.DigestHeader() {{
             setAlgorithm("sha-256");
@@ -216,7 +223,7 @@ public class ClientResourceTest {
         request.setMethod("GET");
         request.setUrl(registry.root() + "/api/spy");
         request.setHeaders(new HashMap<String, String>() {{
-            put("Date", new Date(0).toString()); // ensure test can be re-executed
+            put("Date", CAL.getTime().toString()); // ensure test can be re-executed
             put("Authorization", registry.basicHeader());
         }});
         request.setDigest(new ClientResource.DigestHeader() {{
@@ -270,7 +277,7 @@ public class ClientResourceTest {
         request.setUrl(registry.root() + "/api/spy");
         request.setHeaders(new HashMap<String, String>() {{
             put("Authorization", registry.basicHeader());
-            put("Date", new Date(0).toString()); // ensure test can be re-executed
+            put("Date", CAL.getTime().toString()); // ensure test can be re-executed
         }});
         request.setDigest(new ClientResource.DigestHeader() {{
             setAlgorithm("sha-256");

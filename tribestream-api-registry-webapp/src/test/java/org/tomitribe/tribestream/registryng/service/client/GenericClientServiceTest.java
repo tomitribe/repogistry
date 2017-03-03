@@ -37,9 +37,11 @@ import javax.persistence.PersistenceContext;
 import javax.transaction.UserTransaction;
 import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.TimeZone;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
@@ -67,6 +69,11 @@ public class GenericClientServiceTest {
     @After
     public void cleanUp() {
         registry.restoreData();
+    }
+
+    private static final Calendar CAL = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+    static {
+        CAL.setTimeInMillis(0);
     }
 
     @Test
@@ -125,7 +132,7 @@ public class GenericClientServiceTest {
         assertEquals(
                 "Signature keyId=\"key\",algorithm=\"hmac-sha256\",headers=\"(request-target) date\",signature=\"rmdaoJr8kAE3NWh6bdjWJpHX5PZ9Qp61MnTxdIV3kcg=\"",
                 client.httpSign(asList("(request-target)", "date"), "POST", "/foo/bar?q=u", "key", "chut", Algorithm.HMAC_SHA256.getJmvName(), new HashMap<String, String>() {{
-                    put("date", new Date(0).toString()); // ensure test can be re-executed
+                    put("date", CAL.getTime().toString()); // ensure test can be re-executed
                 }}));
     }
 
